@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"], "skipLibCheck": true, "esModuleInterop": true,
+    "strict": true, "module": "ESNext", "moduleResolution": "Bundler",
+    "paths": { "@framework/*": ["./src/live2d/framework/src/*"] },
+    "resolveJsonModule": true, "isolatedModules": true, "noEmit": true, "jsx": "react-jsx"
+  },
+  "include": ["src"]
+}

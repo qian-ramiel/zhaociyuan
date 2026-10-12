@@ -1,0 +1,61 @@
+Zhaociyuan License 1.0
+
+Copyright (c) 2026 qian-ramiel.
+
+This license covers only original Zhaociyuan application code and documentation
+for which the licensor holds the necessary rights. Third-party code, runtimes,
+models and character assets remain subject to their respective licenses.
+
+The covered software is licensed under the Apache License, Version 2.0,
+reproduced in LICENSES/Apache-2.0.txt, subject to the additional conditions below.
+These additional conditions control where they differ from that license.
+This is a source-available license, not the unmodified Apache License 2.0 and
+not an OSI-approved open source license.
+
+1. Uses permitted without a separate commercial agreement
+
+You may use, study, modify and share the covered software for non-commercial
+personal activities, education, research and non-profit projects in accordance
+with this license. You may also use it for VTuber streams, broadcasts and other
+content creation, including monetized content, where revenue comes from the
+content rather than selling or providing paid access to the software.
+
+2. Uses requiring separate written permission from the licensor
+
+The following uses of the covered software or modified versions require a
+separate commercial license, whether or not the source code is disclosed:
+
+(a) Charging for access, hosted use, subscriptions, downloads or installation
+of the software, including paid SaaS and pay-per-use offerings.
+(b) Commercially redistributing, repackaging or rebranding the software in
+exchange for payment or other commercial benefits.
+(c) Incorporating covered code into software, hardware or another product
+that is sold, licensed or otherwise supplied for a fee.
+
+These restrictions apply to covered software, not independently created code
+that merely communicates with it through a public interface and contains no
+covered code. No permission to third-party components is granted by purchasing
+a commercial Zhaociyuan license.
+
+3. Notices, third-party rights and brand
+
+Retain this license, applicable copyright notices and third-party notices in
+redistributions. Clearly identify modified versions and do not imply official
+endorsement. This license grants no trademark rights to the Zhaociyuan name or
+logo, except customary factual identification of origin. Imported assets may
+be distributed only as permitted by their own rights holders.
+
+4. Contributions and earlier grants
+
+This license does not establish ownership of another person's contributions.
+Commercial relicensing of contributions requires an appropriate rights grant.
+It does not revoke rights already granted for earlier copies under another
+license, and it does not relicense third-party code.
+
+5. Disclaimer
+
+The warranty disclaimer and limitation of liability in Sections 7 and 8 of
+the Apache License 2.0 apply. The software is provided on an AS IS basis,
+without warranties or guarantees, to the extent permitted by applicable law.
+
+Commercial licensing contact: https://github.com/qian-ramiel

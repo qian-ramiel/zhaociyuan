@@ -1,0 +1,104 @@
+{
+  "name": "zhaociyuan",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local-first AI desktop companion with configurable characters, LLM, voice and screen context.",
+  "author": "qian-ramiel",
+  "license": "LicenseRef-Zhaociyuan-1.0",
+  "main": "apps/desktop/main.cjs",
+  "scripts": {
+    "dev": "node tools/dev.mjs",
+    "dev:web": "node tools/dev.mjs --web",
+    "start": "electron .",
+    "build": "tsc -p apps/desktop/renderer/tsconfig.json --noEmit && vite build --config apps/desktop/renderer/vite.config.ts",
+    "test": "node --test tests/desktop/*.test.cjs && PYTHONPATH=services/companion .venv/bin/python -m pytest services/companion/server/tests -q",
+    "test:desktop": "node tests/desktop/smoke.mjs",
+    "test:feedback": "npm run build && node tests/desktop/feedback-ui.mjs",
+    "package:mac": "npm run build && node tools/packaging/prepare-mac.mjs && electron-builder --mac dmg --arm64 --publish never",
+    "test:package:mac": "node tests/desktop/package-smoke.mjs",
+    "check:publish": "node tools/check-publish.mjs",
+    "setup:api": "python3 tools/setup_api.py",
+    "setup:speech": "PYTHONPATH=services/companion .venv/bin/python -m server.setup_speech"
+  },
+  "dependencies": {
+    "@ricky0123/vad-web": "0.0.31",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.31.0",
+    "marked": "18.1.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "uiohook-napi": "1.5.5"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "electron": "44.6.0",
+    "electron-builder": "^26.0.12",
+    "playwright": "^1.58.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.1"
+  },
+  "overrides": {
+    "isbinaryfile": "5.0.7"
+  },
+  "build": {
+    "appId": "org.nicepeople.companion",
+    "productName": "兆次元",
+    "artifactName": "Zhaociyuan-${version}-mac-${arch}.${ext}",
+    "electronDist": "node_modules/electron/dist",
+    "npmRebuild": false,
+    "asarUnpack": ["**/*.node"],
+    "directories": {
+      "output": "releases"
+    },
+    "files": [
+      "apps/desktop/*.cjs",
+      "apps/desktop/errors.mjs",
+      "apps/desktop/stream.cjs",
+      "apps/desktop/push-to-talk.cjs",
+      "apps/desktop/pointer-regions.cjs",
+      "apps/desktop/THIRD_PARTY_NOTICES.md",
+      "apps/desktop/renderer/dist/brand/logo.png",
+      "LICENSE",
+      "LICENSES/Apache-2.0.txt",
+      "NOTICE.md",
+      "LICENSE-Live2D.md"
+    ],
+    "extraResources": [
+      {
+        "from": "build/staging/companion-service", "to": "companion-service"
+      },
+      { "from": "apps/desktop/renderer/dist", "to": "renderer" },
+      { "from": "build/staging/speech", "to": "speech" },
+      { "from": "build/staging/licenses", "to": "licenses" }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "build/packaging/app.icns",
+      "target": ["dmg"],
+      "identity": "-",
+      "notarize": false,
+      "hardenedRuntime": true,
+      "entitlements": "build/packaging/entitlements.mac.plist",
+      "entitlementsInherit": "build/packaging/entitlements.mac.plist",
+      "signIgnore": ["/Resources/speech/", "/Resources/renderer/", "/Resources/licenses/", "\\.(pyc|zip|onnx|bin|fst|pem|html|json|txt|md)$"],
+      "minimumSystemVersion": "13.0",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "语音输入，用于与桌面角色交谈。",
+        "NSScreenCaptureUsageDescription": "观察你选择的窗口，为本次对话提供画面上下文。"
+      }
+    },
+    "dmg": {
+      "title": "兆次元 1.0",
+      "icon": "build/packaging/app.icns",
+      "backgroundColor": "#f4f6f8",
+      "window": { "width": 560, "height": 360 },
+      "contents": [
+        { "x": 150, "y": 175, "type": "file" },
+        { "x": 410, "y": 175, "type": "link", "path": "/Applications" }
+      ]
+    }
+  }
+}
