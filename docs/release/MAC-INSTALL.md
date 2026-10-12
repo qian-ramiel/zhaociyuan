@@ -4,7 +4,7 @@
 
 本版面向 **Apple Silicon（M 系列）Mac**，构建最低系统版本为 macOS 13，尚未覆盖所有系统版本和设备。不支持 Intel、Windows 或 Linux。
 
-打开 [v1.0.0-beta.1 Release](https://github.com/qian-ramiel/zhaociyuan/releases/tag/v1.0.0-beta.1)，下载：
+安装包暂未提供公开下载。本文说明安装步骤和源码构建方法；安装包发布后，可从 [Releases](https://github.com/qian-ramiel/zhaociyuan/releases) 下载以下附件：
 
 - `Zhaociyuan-1.0.0-beta.1-mac-arm64.dmg`：安装包。
 - `SHA256SUMS-beta.1.txt`：SHA-256 校验文件。

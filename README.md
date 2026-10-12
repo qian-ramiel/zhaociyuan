@@ -6,7 +6,7 @@
 
 兆次元是一个本地优先的 AI 桌面伴侣：导入喜欢且有使用权的角色形象，自行接入大语言模型和 TTS，为聊天、工作、游戏、观影设置不同的陪伴模式。角色可以通过文字、语音和经过授权的屏幕画面与你互动。
 
-**当前版本为 1.0.0-beta.1，仍处于测试阶段。** 已提供 macOS Apple Silicon 安装包；Windows、Linux 和 Intel Mac 暂无安装版本。
+**当前版本为 1.0.0-beta.1，仍处于测试阶段。** 目前以 macOS Apple Silicon 为主要开发与打包平台；安装包暂未提供公开下载。
 
 ## 界面预览
 
@@ -20,13 +20,12 @@
 
 以上为真实应用截图，使用 AI 生成的原创示例静态立绘、示例配置和示例对话；背景为演示工作窗口。展示角色不随安装包提供，可自行导入立绘或 Live2D 形象。
 
-## 下载测试版
+## 试用与安装
 
-- [测试版 Release 与附件](https://github.com/qian-ramiel/zhaociyuan/releases/tag/v1.0.0-beta.1)
-- [macOS Apple Silicon 安装包](https://github.com/qian-ramiel/zhaociyuan/releases/download/v1.0.0-beta.1/Zhaociyuan-1.0.0-beta.1-mac-arm64.dmg)
-- [安装说明与首次配置](docs/release/MAC-INSTALL.md)
+- [版本与安装包](https://github.com/qian-ramiel/zhaociyuan/releases)
+- [安装、首次配置与源码构建说明](docs/release/MAC-INSTALL.md)
 
-下载安装 DMG 即可使用，无需安装 Node.js 或 Python。安装包内置本地语音识别和合成模型；角色形象、大语言模型与第三方服务由你自行配置。首次安装请阅读安装说明中的安全提示。
+安装包发布前，可按照下方“从源码启动”运行。发布后安装 DMG 无需另装 Node.js 或 Python；角色形象、大语言模型与第三方服务由你自行配置。首次安装请阅读安装说明中的安全提示。
 
 ## 已有能力
 
