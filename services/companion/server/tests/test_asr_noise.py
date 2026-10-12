@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import soundfile as sf
 from fastapi import HTTPException
-from server.app import speech
+from server.app import database, speech
 
 
 def wave(samples):
@@ -19,6 +19,7 @@ def wave(samples):
 def engine(monkeypatch, tmp_path):
     (tmp_path / 'model.int8.onnx').touch()
     monkeypatch.setattr(speech, 'ASR_MODEL_DIR', tmp_path)
+    monkeypatch.setattr(database, 'get_setting', lambda key, default=None: default)
     calls = []
     stream = SimpleNamespace(accept_waveform=lambda *args: None, result=SimpleNamespace(text='The.'))
     recognizer = SimpleNamespace(create_stream=lambda: stream, decode_stream=lambda value: calls.append(value))
