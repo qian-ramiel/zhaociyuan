@@ -8,6 +8,7 @@ const gitBinary = process.platform === 'darwin' && fs.existsSync('/usr/bin/git')
 const approvedDocs = new Set([
   'docs/DEVELOPMENT.md', 'docs/PRIVACY.md', 'docs/LICENSING.md', 'docs/ROADMAP.md',
   'docs/release/MAC-INSTALL.md', 'docs/brand/zhaociyuan/兆次元-logo-选定版.png',
+  'docs/release/RELEASE-v1.0.0-beta.1.md',
 ]);
 const binaryExtensions = new Set(['.png', '.jpg', '.jpeg', '.webp', '.ico', '.icns']);
 const credentialPatterns = [

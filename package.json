@@ -1,6 +1,6 @@
 {
   "name": "zhaociyuan",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.1",
   "private": true,
   "type": "module",
   "description": "Local-first AI desktop companion with configurable characters, LLM, voice and screen context.",

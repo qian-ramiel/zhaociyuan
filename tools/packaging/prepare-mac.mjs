@@ -9,6 +9,8 @@ process.chdir(root);
 if (process.platform !== 'darwin' || process.arch !== 'arm64') throw Error('This build profile requires an Apple Silicon Mac.');
 const stage = path.join(root, 'build/staging');
 const licenses = path.join(stage, 'licenses');
+// Rebuild generated resources from the allowlist; never carry stale files forward.
+fs.rmSync(stage, { recursive: true, force: true });
 fs.mkdirSync(licenses, { recursive: true });
 function run(command, args, env = {}) {
   const result = spawnSync(command, args, { stdio: 'inherit', env: { ...process.env, ...env } });

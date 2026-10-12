@@ -16,7 +16,8 @@ fs.mkdirSync(reportDir, { recursive: true });
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'zhaociyuan-install-'));
 const mountpoint = path.join(temporary, 'volume');
 fs.mkdirSync(mountpoint);
-const dmg = path.join(root, 'releases/Zhaociyuan-1.0.0-mac-arm64.dmg');
+const version = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version;
+const dmg = path.join(root, `releases/Zhaociyuan-${version}-mac-arm64.dmg`);
 const result = { passed: false, checks: [], errors: [], dmg, temporary };
 let mounted = false, api, electron, browser;
 function run(command, args) {
@@ -51,14 +52,19 @@ try {
   run('codesign', ['--verify', '--deep', '--strict', installed]);
   result.checks.push('ad-hoc code signature integrity');
   const resources = path.join(installed, 'Contents/Resources');
+  assert.equal(run('/usr/libexec/PlistBuddy', ['-c', 'Print :CFBundleShortVersionString', path.join(installed, 'Contents/Info.plist')]).trim(), version);
   const iconName = run('/usr/libexec/PlistBuddy', ['-c', 'Print :CFBundleIconFile', path.join(installed, 'Contents/Info.plist')]).trim();
   assert(fs.existsSync(path.join(resources, iconName)));
   assert(fs.existsSync(path.join(resources, 'licenses/model-manifest.json')));
+  assert.equal(fs.readFileSync(path.join(resources, 'licenses/PROJECT-LICENSE'), 'utf8'), fs.readFileSync(path.join(root, 'LICENSE'), 'utf8'));
+  for (const notice of ['Apache-2.0.txt', 'PROJECT-NOTICE.md', 'LICENSE-Live2D.md', 'live2d/core/LICENSE.md', 'MAC-INSTALL.md']) {
+    assert(fs.existsSync(path.join(resources, 'licenses', notice)), notice);
+  }
   assert(!fs.existsSync(path.join(resources, 'characters')));
   const packagedFiles = allFiles(resources);
   assert(!packagedFiles.some((file) => /companion\.db|\.env$|test_wavs|modelscope|model\.onnx$/.test(file) && file.includes('sense-voice')));
-  assert(!packagedFiles.some((file) => /companion\.db$|\.env$/.test(file)));
-  result.checks.push('icon, license notices and no personal database');
+  assert(!packagedFiles.some((file) => /(?:^|\/)(?:secrets\.json|\.env(?:\..*)?)$|\.(?:db(?:-.*)?|sqlite3?)$|\.model3\.json$|\.moc3$/.test(file)));
+  result.checks.push('beta version, icon, current license notices and no personal database, credentials or characters');
   const cleanEnv = { ...process.env, PATH: '/usr/bin:/bin:/usr/sbin:/sbin' };
   for (const name of Object.keys(cleanEnv)) if (name.startsWith('NICE_PEOPLE_') || name.startsWith('PYTHON')) delete cleanEnv[name];
   const token = crypto.randomBytes(32).toString('hex');

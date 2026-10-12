@@ -1,38 +1,78 @@
-# 兆次元 1.0 macOS 本地验收安装版
+# 兆次元 1.0.0-beta.1 macOS 测试版安装说明
+
+## 下载与适用设备
+
+本版仅支持 **Apple Silicon（M 系列）Mac、macOS 13 或更新版本**。不支持 Intel、Windows 或 Linux。最低系统版本来自构建配置，本轮不代表已在所有系统版本实测。
+
+登录拥有仓库读取权限的 GitHub 账号，打开 [v1.0.0-beta.1 Release](https://github.com/qian-ramiel/zhaociyuan/releases/tag/v1.0.0-beta.1)，下载：
+
+- `Zhaociyuan-1.0.0-beta.1-mac-arm64.dmg`：安装包。
+- `SHA256SUMS-beta.1.txt`：SHA-256 校验文件。
+- `MAC-INSTALL.md`：本说明。
+
+仓库保持私有，只有获授权账号能下载；404 通常表示未登录或未获权限。Star 不授予仓库读取权限。请由维护者邀请测试者，不要公开转存安装包。
 
 ## 安装
 
-本次构建为 Apple Silicon（M 系列）专用，不支持 Intel Mac。打开 DMG，把“兆次元”拖到 Applications，再从应用程序打开。无需安装 Node.js、Python 或系统 ffmpeg。
+1. 需要时先备份已有角色配置及用户数据；从旧安装版升级不会自动清空数据。
+2. 打开 DMG，把“兆次元”拖入 Applications；不要直接从 DMG 中长期运行。
+3. 如需替换已有应用，请先从状态栏选择“退出”，仅关面板不等于退出。
+4. 从“应用程序”打开“兆次元”，完成首次角色和服务配置。
 
-这是本地验收构建，使用 ad-hoc 签名，没有 Apple Developer ID 签名和公证。不要当作正式公开发行包。若 macOS 阻止首次打开，确认来源后可在“系统设置 → 隐私与安全性”使用“仍要打开”；不要全局关闭系统安全检查。
+普通测试者不需要安装 Node.js、Python 或系统 ffmpeg。安装包内置本地服务、SenseVoice int8 语音识别和 Kokoro 语音合成权重；无需另行下载这两套模型。LLM 及第三方 TTS 仍需你自己的服务配置，可能产生服务商费用。包内没有私人角色、API Key、聊天或知识库。
 
-安装版首次使用不包含开发版的角色、密钥、聊天或知识库。请创建角色，导入你有使用权的形象，并配置自己的模型服务。需要时可在开发版导出角色包，再在安装版导入。
+## 首次打开的安全提示
+
+这是 **未完成 Apple Developer ID 签名及公证的测试包**，只有 ad-hoc 完整性签名。它不等于 Apple 认可的开发者签名或安全审查。
+
+如果系统提示无法验证开发者，在确认下载来源与校验值后，可按 [Apple 官方说明](https://support.apple.com/zh-cn/102445)，先尝试打开应用，再到“系统设置 → 隐私与安全性”查看“仍要打开”。
+
+不要全局关闭门禁或 SIP。若系统明确提示恶意软件、文件已损坏，或没有“仍要打开”，停止安装并反馈，勿强行绕过。当前未完成真实浏览器下载隔离属性下的 Gatekeeper 验收，不保证这一路径在所有设备都可用。
+
+可选校验：把安装包和校验文件放在同一文件夹，再在该文件夹运行：
+
+```bash
+shasum -a 256 -c SHA256SUMS-beta.1.txt
+```
+
+应显示安装包文件名后跟 `OK`。校验失败时不要安装，重新从 Release 下载并联系维护者。
+
+## 首次配置
+
+1. 创建角色，导入你有使用权的 Live2D ZIP 或静态立绘。
+2. 在角色配置的“思维”中填写 LLM 地址、模型名称和自己的 Key，保存并测试。
+3. 在“声音”选择本地 Kokoro 或自己的 TTS 服务，再选择语音识别设置。
+4. 设置陪伴模式与提示词；需要看屏幕时另行打开视觉和模式授权。使用支持图片的对话模型，或配置独立视觉模型。
+
+本地语音可用不代表已连接大语言模型。未配置 LLM 时不会伪造聊天回复；基础的本地形象切换仍可使用。mini 需要自行绑定形象，不会自动生成 Q 版素材。
 
 ## 权限与数据
 
-- 录音需要麦克风权限，屏幕观察需要屏幕录制权限，双 Shift 按住说话需要辅助功能权限。安装版需单独授权，开发版的 Electron 授权不会自动继承。
-- 安装版沿用 bundle ID `org.nicepeople.companion` 和用户目录 `~/Library/Application Support/Nice People`，不删除已有安装版数据。
-- 数据保存在用户目录中，不写入 `.app` 或 DMG。卸载应用不会自动删除聊天、角色或密钥。
-- 本地服务只监听 `127.0.0.1`，自动选择空闲端口，通过每次启动生成的随机口令连接；退出时关闭服务。
-- 启动故障记录为用户数据目录中的 `startup.log`，不记录请求正文。模型调用记录仍从面板查看。
+- 麦克风权限用于录音；屏幕录制权限用于已授权的画面捕获；辅助功能权限用于双 Shift 等全局按住说话快捷键。只使用文字聊天时不需要全部授予。
+- 在“系统设置 → 隐私与安全性”授权“兆次元”。安装版需要单独授权，开发版 Electron 的权限不会自动继承。必要时退出后重新打开。
+- 听觉控制麦克风，不是系统声音监听。关闭视觉后，文字或语音发送不应再附图；先选择非敏感窗口验证。
+- bundle ID 沿用 `org.nicepeople.companion`，用户数据目录沿用 `~/Library/Application Support/Nice People`，不删除已有安装版数据。
+- 密钥优先保存到系统钥匙串，不可用时可能退回明文 `secrets.json`；见 [隐私说明](https://github.com/qian-ramiel/zhaociyuan/blob/main/docs/PRIVACY.md)。
+- 数据不写入应用或 DMG。卸载不会自动删除数据或钥匙串密钥；导出的角色包也可能包含个人设定或用户选择的历史，勿直接公开。
+- 本地服务只监听 `127.0.0.1`，通过每次启动生成的随机口令连接；正常退出时关闭。不要暴露到公网。
+- 启动故障记录为用户目录中的 `startup.log`。反馈前检查日志内容，不上传数据库、密钥或完整聊天。
 
-## 内置资源
+## 测试建议和已知限制
 
-内置本地服务、SenseVoice int8 识别模型与 Kokoro 中文语音模型，第三方 TTS 可自行配置。模型只读使用；用户自己安装的同名本地模型优先。没有把私人 Live2D 角色或开发数据库放入安装包。
+先用非敏感内容验证创建角色、文字回复、TTS 试听、录音转写、浮动聊天、拖动缩放、切换模式与退出。再逐项授权并验证屏幕捕获和按住说话；不要一开始就打开敏感窗口或使用昂贵模型。
 
-应用图标使用内置图片生成工具将已选定 Logo 制作为白色圆角 macOS 图标，并转换成包含 16–1024px 的 ICNS。原 Logo 与状态栏图标保持不变，状态栏不显示名称文字。
+真实麦克风噪声 / 回声、游戏内双 Shift 冲突、多桌面 / 全屏、长时间通话、不同模型厂商、不同 macOS 版本还需要更多测试。视觉模型可能误读文本；不保证实时游戏策略或连续影片理解。没有系统音频监听、VRM、云同步或自动更新；升级需要手动下载新包。
 
-## 公开发行前仍需完成
+反馈请附版本、芯片与系统版本、复现步骤、预期和实际结果，以及脱敏截图。安全问题请走 [SECURITY.md](https://github.com/qian-ramiel/zhaociyuan/blob/main/SECURITY.md) 所述私密渠道。
 
-1. Apple Developer ID 签名、公证与公证票据装订，以及不同 macOS 版本上的首次安装验收。
-2. Live2D Core 的具体发行条款确认；项目许可不取代 Live2D 的许可。
-3. 精确核验内置语音模型、espeak-ng 数据、ffmpeg、libuiohook 原生库及其他依赖的再分发义务。安装包已收集现有许可、版本清单、模型哈希和 uiohook 源码，不表示法律审查已完成。
-4. Intel 版本需独立准备 x86_64 服务与原生依赖，不能把 arm64 包改名冒充通用版本。
+## 版权与发行边界
 
-资源许可在 `.app/Contents/Resources/licenses`；Electron 自身许可随框架保留。
+原创应用使用 Zhaociyuan License 1.0；Live2D、语音权重和其他第三方组件保留原授权。版权资料在 `.app/Contents/Resources/licenses`，Electron 框架许可另行保留。没有携带私人 Live2D 模型。
 
-## 构建
+私有测试附件不代表完成第三方再分发法律审查。公开发行前仍需要 Apple 签名公证、干净设备验收、Live2D 具体发行条款确认，以及语音权重、ffmpeg、espeak-ng、libuiohook 等依赖义务核对。
 
-开发机先安装项目依赖、本地语音模型和 `tools/packaging/requirements.txt` 中的打包依赖，再执行 `npm run package:mac`。产物放在 `releases`。构建不会上传发布，也不会自动安装或覆盖运行中的应用。
+## 开发者构建
 
-参考：[PyInstaller macOS 原生架构与签名](https://pyinstaller.org/en/stable/feature-notes.html)、[electron-builder 26 macOS 配置](https://www.electron.build/v26/docs/mac/)。
+先安装项目依赖、本地语音模型和 `tools/packaging/requirements.txt` 中的打包依赖，再执行 `npm run package:mac`。产物在 `releases/`，默认不上传发布，也不会自动安装或覆盖运行中的应用。
+
+参考：[PyInstaller macOS 打包](https://pyinstaller.org/en/stable/feature-notes.html)、[electron-builder macOS 配置](https://www.electron.build/v26/docs/mac/)。

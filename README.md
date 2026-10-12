@@ -6,7 +6,15 @@
 
 兆次元是一个本地优先的 AI 桌面伴侣：导入喜欢且有使用权的角色形象，自行接入大语言模型和 TTS，为聊天、工作、游戏、观影设置不同的陪伴模式。角色可以通过文字、语音和经过授权的屏幕画面与你互动。
 
-**当前为 1.0.0 开发预览，不是正式稳定发行。** macOS Apple Silicon 安装包已完成本机构建及基本流程验证，更多设备、真实麦克风、游戏快捷键、屏幕权限和长时间使用测试仍在继续。Windows、Linux 和 Intel Mac 尚未发行。本仓库首次上传为私有预发布，不提供安装包下载。
+**当前为 1.0.0-beta.1 私有测试版，不是正式稳定发行。** macOS Apple Silicon 安装包已完成本机构建及基本流程验证，更多设备、真实麦克风、游戏快捷键、屏幕权限和长时间使用测试仍在继续。Windows、Linux 和 Intel Mac 尚未发行。
+
+## 下载测试版
+
+- [测试版 Release 与附件](https://github.com/qian-ramiel/zhaociyuan/releases/tag/v1.0.0-beta.1)
+- [macOS Apple Silicon 安装包](https://github.com/qian-ramiel/zhaociyuan/releases/download/v1.0.0-beta.1/Zhaociyuan-1.0.0-beta.1-mac-arm64.dmg)
+- [安装说明与首次配置](docs/release/MAC-INSTALL.md)
+
+仓库仍为 **Private**，须登录拥有仓库读取权限的 GitHub 账号；未获邀请会看到 404，Star 不会授予下载权限。普通测试者直接安装 DMG，不需要源码开发环境。安装包包含本地语音模型，但不含私人角色、Key 或模型服务额度。请先阅读安装说明中的安全提示。
 
 ## 已有能力
 
@@ -40,7 +48,7 @@ npm run dev
 
 ## macOS 安装与构建
 
-已生成 Apple Silicon 本地验收包，无需另外安装 Node.js 或 Python。当前使用 ad-hoc 签名，尚未完成 Apple Developer ID 签名、公证或不同设备验收。源码上传不代表安装包已公开发行。
+测试版只支持 macOS 13+、Apple Silicon，无需另外安装 Node.js 或 Python。当前使用 ad-hoc 签名，尚未完成 Apple Developer ID 签名、公证或不同设备验收。Private Release 不代表正式公开发行。
 
 构建前需要本地语音资源及额外打包依赖，详见 [macOS 安装与构建](docs/release/MAC-INSTALL.md)。产物留在 `releases/`，不进入 Git。
 
