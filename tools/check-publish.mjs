@@ -9,6 +9,7 @@ const approvedDocs = new Set([
   'docs/DEVELOPMENT.md', 'docs/PRIVACY.md', 'docs/LICENSING.md', 'docs/ROADMAP.md',
   'docs/release/MAC-INSTALL.md', 'docs/brand/zhaociyuan/兆次元-logo-选定版.png',
   'docs/release/RELEASE-v1.0.0-beta.1.md',
+  'docs/screenshots/control-panel.png', 'docs/screenshots/desktop-companion.png',
 ]);
 const binaryExtensions = new Set(['.png', '.jpg', '.jpeg', '.webp', '.ico', '.icns']);
 const publicationCopyPattern = /私有(?:测试|预发布|开发预览)|仓库[^\n]{0,80}(?:Private|私有|读取权限)|Star[^\n]{0,40}(?:权限|下载)|本机文件保留|本轮已验证|重新打包纳入/g;

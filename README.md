@@ -8,6 +8,18 @@
 
 **当前版本为 1.0.0-beta.1，仍处于测试阶段。** 已提供 macOS Apple Silicon 安装包；Windows、Linux 和 Intel Mac 暂无安装版本。
 
+## 界面预览
+
+**桌面陪伴**：悬浮角色、聊天气泡、独立聊天窗与快捷工具栏。
+
+![兆次元桌面陪伴：悬浮角色、气泡、聊天窗口和陪伴模式菜单](docs/screenshots/desktop-companion.png)
+
+**配置面板**：管理角色与形象，分别配置思维、声音、视觉和记忆。
+
+![兆次元配置面板：角色菜单与思维、声音、视觉、记忆配置页签](docs/screenshots/control-panel.png)
+
+以上为真实应用截图，使用 AI 生成的原创示例静态立绘、示例配置和示例对话；背景为演示工作窗口。展示角色不随安装包提供，可自行导入立绘或 Live2D 形象。
+
 ## 下载测试版
 
 - [测试版 Release 与附件](https://github.com/qian-ramiel/zhaociyuan/releases/tag/v1.0.0-beta.1)

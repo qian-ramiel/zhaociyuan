@@ -53,6 +53,9 @@ docs/**
 !docs/PRIVACY.md
 !docs/LICENSING.md
 !docs/ROADMAP.md
+!docs/screenshots/
+!docs/screenshots/control-panel.png
+!docs/screenshots/desktop-companion.png
 !docs/release/
 !docs/release/MAC-INSTALL.md
 !docs/release/RELEASE-v1.0.0-beta.1.md

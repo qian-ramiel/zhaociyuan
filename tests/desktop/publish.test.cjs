@@ -18,6 +18,9 @@ test('publication checks allow placeholders, source interfaces and selected asse
   assert.deepEqual(inspectCandidate('runtime/.gitkeep', Buffer.alloc(0)), []);
   assert.deepEqual(inspectCandidate('apps/desktop/renderer/public/brand/logo.png', Buffer.from([0, 1, 2])), []);
   assert.deepEqual(inspectCandidate('fixture.js', Buffer.from('/Users/example/data')), []);
+  assert.deepEqual(inspectCandidate('docs/screenshots/control-panel.png', Buffer.from([0, 1, 2])), []);
+  assert.deepEqual(inspectCandidate('docs/screenshots/desktop-companion.png', Buffer.from([0, 1, 2])), []);
+  assert.ok(inspectCandidate('docs/screenshots/private-chat.png', Buffer.from([0, 1, 2])).length);
   assert.ok(inspectCandidate('docs/private.md', Buffer.from('draft')).length);
 });
 
