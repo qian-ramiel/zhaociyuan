@@ -6,7 +6,7 @@
 
 兆次元是一个本地优先的 AI 桌面伴侣：导入喜欢且有使用权的角色形象，自行接入大语言模型和 TTS，为聊天、工作、游戏、观影设置不同的陪伴模式。角色可以通过文字、语音和经过授权的屏幕画面与你互动。
 
-**当前为 1.0.0-beta.1 私有测试版，不是正式稳定发行。** macOS Apple Silicon 安装包已完成本机构建及基本流程验证，更多设备、真实麦克风、游戏快捷键、屏幕权限和长时间使用测试仍在继续。Windows、Linux 和 Intel Mac 尚未发行。
+**当前版本为 1.0.0-beta.1，仍处于测试阶段。** 已提供 macOS Apple Silicon 安装包；Windows、Linux 和 Intel Mac 暂无安装版本。
 
 ## 下载测试版
 
@@ -14,7 +14,7 @@
 - [macOS Apple Silicon 安装包](https://github.com/qian-ramiel/zhaociyuan/releases/download/v1.0.0-beta.1/Zhaociyuan-1.0.0-beta.1-mac-arm64.dmg)
 - [安装说明与首次配置](docs/release/MAC-INSTALL.md)
 
-仓库仍为 **Private**，须登录拥有仓库读取权限的 GitHub 账号；未获邀请会看到 404，Star 不会授予下载权限。普通测试者直接安装 DMG，不需要源码开发环境。安装包包含本地语音模型，但不含私人角色、Key 或模型服务额度。请先阅读安装说明中的安全提示。
+下载安装 DMG 即可使用，无需安装 Node.js 或 Python。安装包内置本地语音识别和合成模型；角色形象、大语言模型与第三方服务由你自行配置。首次安装请阅读安装说明中的安全提示。
 
 ## 已有能力
 
@@ -48,7 +48,7 @@ npm run dev
 
 ## macOS 安装与构建
 
-测试版只支持 macOS 13+、Apple Silicon，无需另外安装 Node.js 或 Python。当前使用 ad-hoc 签名，尚未完成 Apple Developer ID 签名、公证或不同设备验收。Private Release 不代表正式公开发行。
+安装包面向 macOS 13+、Apple Silicon，尚未覆盖所有系统版本和设备。当前只有 ad-hoc 完整性签名，没有 Apple Developer ID 签名与公证。
 
 构建前需要本地语音资源及额外打包依赖，详见 [macOS 安装与构建](docs/release/MAC-INSTALL.md)。产物留在 `releases/`，不进入 Git。
 
@@ -66,8 +66,8 @@ npm run dev
 
 Copyright (c) 2026 qian-ramiel. Original Zhaociyuan code.
 
-原创应用代码采用 **Zhaociyuan License 1.0**：以 Apache-2.0 条款为基础，另有商业用途限制，参考 Open-LLM-VTuber 的分层授权思路。个人非商业使用、学习及直播内容创作可按协议使用；收费托管、商业套壳和集成到收费产品需要另行取得许可。**这属于源码可见授权，不是纯 Apache-2.0、MIT 或 OSI 意义上的开源许可。** 以 [LICENSE](LICENSE) 英文文本为准。
+原创应用代码采用 **Zhaociyuan License 1.0**。个人非商业使用、学习及直播内容创作可按协议使用；收费托管、商业套壳和集成到收费产品需要另行取得许可。**这是带商业用途限制的源码可见许可，不是 MIT 或 Apache-2.0 开源许可。** 完整条款见 [LICENSE](LICENSE)。
 
-Live2D Core、Framework、Samples、第三方库、语音权重和用户角色各自保留原许可，不受本项目商业许可重新授权。项目不声称已取得所有组件的公开发行许可，也不将第三方角色所有权据为己有。见 [授权说明](docs/LICENSING.md)、[Live2D 说明](LICENSE-Live2D.md) 和 [第三方声明](NOTICE.md)。
+Live2D Core、Framework、Samples、第三方库、语音权重和角色素材保留各自许可；应用许可不替代其使用或发行条款。见 [授权说明](docs/LICENSING.md)、[Live2D 说明](LICENSE-Live2D.md) 和 [第三方声明](NOTICE.md)。
 
 商业许可请通过 [维护者 GitHub 主页](https://github.com/qian-ramiel) 联系，签署书面授权前不视为已获许可。欢迎试用、反馈和支持这个仍在成长中的桌面伴侣。

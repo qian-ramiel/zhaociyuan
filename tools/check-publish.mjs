@@ -11,6 +11,7 @@ const approvedDocs = new Set([
   'docs/release/RELEASE-v1.0.0-beta.1.md',
 ]);
 const binaryExtensions = new Set(['.png', '.jpg', '.jpeg', '.webp', '.ico', '.icns']);
+const publicationCopyPattern = /私有(?:测试|预发布|开发预览)|仓库[^\n]{0,80}(?:Private|私有|读取权限)|Star[^\n]{0,40}(?:权限|下载)|本机文件保留|本轮已验证|重新打包纳入/g;
 const credentialPatterns = [
   ['provider-key', /\bsk-[A-Za-z0-9_-]{20,}/g],
   ['github-token', /\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{40,})/g],
@@ -38,6 +39,10 @@ export function inspectCandidate(file, content, mode = '100644') {
     return findings;
   }
   const text = content.toString('utf8');
+  const firstPartyDocument = file.endsWith('.md') && !file.startsWith('apps/desktop/renderer/src/live2d/');
+  if (firstPartyDocument) {
+    for (const match of text.matchAll(publicationCopyPattern)) add('internal-publication-copy', text.slice(0, match.index).split('\n').length);
+  }
   for (const [rule, pattern] of credentialPatterns) {
     for (const match of text.matchAll(pattern)) {
       if (rule === 'credential-assignment' && /^(?:YOUR_|REPLACE_|EXAMPLE_|x+$)/i.test(match[1])) continue;

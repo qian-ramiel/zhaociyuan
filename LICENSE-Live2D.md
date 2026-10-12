@@ -9,9 +9,9 @@ The application license does not cover Live2D SDK components or model assets.
 | SDK sample-derived application files | [Samples license](apps/desktop/renderer/src/live2d/SAMPLES_LICENSE.md) |
 | User-imported model, artwork, motions and voice | The asset owner's terms, not this project's license |
 
-The source tree retains Core separately with its upstream notice, following the
-component-separation pattern seen in Open-LLM-VTuber. This does not establish that
-its redistribution or a finished application is exempt from Live2D review.
+The source tree retains Core separately with its upstream notice. The
+application license does not grant rights to redistribute Live2D components
+or exempt a finished application from applicable Live2D release requirements.
 
 No sample-character model data or personal character packages are included in
 this repository. Obtain models from their authorized source and check the

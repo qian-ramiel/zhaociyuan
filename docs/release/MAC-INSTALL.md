@@ -2,15 +2,13 @@
 
 ## 下载与适用设备
 
-本版仅支持 **Apple Silicon（M 系列）Mac、macOS 13 或更新版本**。不支持 Intel、Windows 或 Linux。最低系统版本来自构建配置，本轮不代表已在所有系统版本实测。
+本版面向 **Apple Silicon（M 系列）Mac**，构建最低系统版本为 macOS 13，尚未覆盖所有系统版本和设备。不支持 Intel、Windows 或 Linux。
 
-登录拥有仓库读取权限的 GitHub 账号，打开 [v1.0.0-beta.1 Release](https://github.com/qian-ramiel/zhaociyuan/releases/tag/v1.0.0-beta.1)，下载：
+打开 [v1.0.0-beta.1 Release](https://github.com/qian-ramiel/zhaociyuan/releases/tag/v1.0.0-beta.1)，下载：
 
 - `Zhaociyuan-1.0.0-beta.1-mac-arm64.dmg`：安装包。
 - `SHA256SUMS-beta.1.txt`：SHA-256 校验文件。
 - `MAC-INSTALL.md`：本说明。
-
-仓库保持私有，只有获授权账号能下载；404 通常表示未登录或未获权限。Star 不授予仓库读取权限。请由维护者邀请测试者，不要公开转存安装包。
 
 ## 安装
 
@@ -19,7 +17,7 @@
 3. 如需替换已有应用，请先从状态栏选择“退出”，仅关面板不等于退出。
 4. 从“应用程序”打开“兆次元”，完成首次角色和服务配置。
 
-普通测试者不需要安装 Node.js、Python 或系统 ffmpeg。安装包内置本地服务、SenseVoice int8 语音识别和 Kokoro 语音合成权重；无需另行下载这两套模型。LLM 及第三方 TTS 仍需你自己的服务配置，可能产生服务商费用。包内没有私人角色、API Key、聊天或知识库。
+无需安装 Node.js、Python 或系统 ffmpeg。安装包内置本地服务、SenseVoice int8 语音识别和 Kokoro 语音合成模型。角色形象、LLM 及第三方 TTS 由你自行配置；外部服务可能产生费用。
 
 ## 首次打开的安全提示
 
@@ -44,7 +42,7 @@ shasum -a 256 -c SHA256SUMS-beta.1.txt
 3. 在“声音”选择本地 Kokoro 或自己的 TTS 服务，再选择语音识别设置。
 4. 设置陪伴模式与提示词；需要看屏幕时另行打开视觉和模式授权。使用支持图片的对话模型，或配置独立视觉模型。
 
-本地语音可用不代表已连接大语言模型。未配置 LLM 时不会伪造聊天回复；基础的本地形象切换仍可使用。mini 需要自行绑定形象，不会自动生成 Q 版素材。
+本地语音可用不代表已连接大语言模型。聊天需要配置 LLM；基础的本地形象切换可独立使用。mini 需要自行绑定形象，不会自动生成 Q 版素材。
 
 ## 权限与数据
 
@@ -67,9 +65,9 @@ shasum -a 256 -c SHA256SUMS-beta.1.txt
 
 ## 版权与发行边界
 
-原创应用使用 Zhaociyuan License 1.0；Live2D、语音权重和其他第三方组件保留原授权。版权资料在 `.app/Contents/Resources/licenses`，Electron 框架许可另行保留。没有携带私人 Live2D 模型。
+原创应用使用 Zhaociyuan License 1.0；Live2D、语音权重和其他第三方组件保留原授权。版权资料在 `.app/Contents/Resources/licenses`，Electron 框架许可另行保留。
 
-私有测试附件不代表完成第三方再分发法律审查。公开发行前仍需要 Apple 签名公证、干净设备验收、Live2D 具体发行条款确认，以及语音权重、ffmpeg、espeak-ng、libuiohook 等依赖义务核对。
+应用许可不授予第三方组件的额外权利。使用、修改或再分发 SDK、语音模型及原生库时，应遵循其各自条款；第三方文件随附的版权声明应保留。
 
 ## 开发者构建
 

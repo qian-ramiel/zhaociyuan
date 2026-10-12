@@ -20,3 +20,11 @@ test('publication checks allow placeholders, source interfaces and selected asse
   assert.deepEqual(inspectCandidate('fixture.js', Buffer.from('/Users/example/data')), []);
   assert.ok(inspectCandidate('docs/private.md', Buffer.from('draft')).length);
 });
+
+test('public documentation rejects internal rollout instructions, not privacy guidance', async () => {
+  const { inspectCandidate } = await import('../../tools/check-publish.mjs');
+  const draft = inspectCandidate('README.md', Buffer.from('仓库仍为 Private，Star 不会授予下载权限。'));
+  assert.ok(draft.some(item => item.rule === 'internal-publication-copy'));
+  assert.deepEqual(inspectCandidate('docs/PRIVACY.md', Buffer.from('不要公开私人聊天；private vulnerability reporting 用于安全报告。')), []);
+  assert.deepEqual(inspectCandidate('NOTICE.md', Buffer.from('An SDK license is not an application release authorization.')), []);
+});

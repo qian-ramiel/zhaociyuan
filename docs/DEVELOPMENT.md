@@ -13,7 +13,7 @@
 | resources | 用户素材和下载权重，仅保留目录占位，不提交实际资源 |
 | runtime | 本地数据和测试证据，仅保留目录占位 |
 
-旧 demo、内部设计稿、测试截图、生成中间文件及本地安装包不进入仓库，但本机文件保留。
+运行数据、下载权重、测试截图和构建产物不进入源码提交。
 
 ## 验证
 
@@ -25,11 +25,11 @@ npm run check:publish
 
 单元测试不代替真实麦克风、屏幕权限、游戏操作或长期体验验收。`test:desktop`、`test:feedback` 和安装包测试可能创建窗口，应在专门的测试环境运行，勿干扰实际工作或已有会话。
 
-2026-10-12 的本机打包记录曾验证 64 项 Node 测试、121 项 Python 测试、生产构建及 9 组隔离安装包检查。数字是该次记录，不是持续保证。尚未完成多设备、Intel / Windows / Linux、真实游戏快捷键或 Gatekeeper 网络下载路径验收。
+安装包测试使用隔离用户目录，覆盖服务启动、访问鉴权、本地语音、窗口和退出。它不代替多设备、真实麦克风、游戏快捷键或网络下载后的 Gatekeeper 验收。
 
 ## 构建 macOS
 
-参见 release/MAC-INSTALL.md。需要 Apple Silicon Mac、本地语音资源及 PyInstaller 打包依赖；`npm run package:mac` 默认不上传发布。构建产物在 releases/，不进入源码提交。
+参见 [安装与构建说明](release/MAC-INSTALL.md)。需要 Apple Silicon Mac、本地语音资源及 PyInstaller 打包依赖；`npm run package:mac` 只生成安装包，不自动上传。构建产物在 `releases/`，不进入源码提交。
 
 ## 上传前检查
 

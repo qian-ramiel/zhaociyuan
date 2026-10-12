@@ -1,6 +1,6 @@
 # Voice and global shortcut dependencies
 
-This is an inventory, not a completed public-distribution license audit. The macOS local acceptance build collects available full notices, package metadata, model hashes and native-addon sources into `Contents/Resources/licenses`. The application license does not replace dependency, model, or imported character licenses. Existing Live2D notices are in `renderer/src/live2d/`.
+The macOS package contains available full notices, package metadata, model hashes and native-addon sources in `Contents/Resources/licenses`. The application license does not replace dependency, model, or imported character licenses. Existing Live2D notices are in `renderer/src/live2d/`. This inventory is not a certification of redistribution compliance.
 
 ## uiohook-napi 1.5.5
 
@@ -10,7 +10,7 @@ This is an inventory, not a completed public-distribution license audit. The mac
 - Native source: https://github.com/kwhat/libuiohook
 - License: https://www.gnu.org/licenses/lgpl-3.0.html
 
-Before public binary distribution, verify the applicable full notices and license texts and provide corresponding native-library source and the material required to rebuild/relink the combined native addon. Retain the exact bundled revision, not just a link to a moving upstream branch. The local acceptance package includes the installed 1.5.5 sources, binding.gyp and rebuild notes; exact prebuilt-binary source provenance and public redistribution compliance remain release gates.
+Redistribution must satisfy the applicable full notices, license texts and corresponding-source / relinking requirements for the native addon. Retain the exact bundled revision, not just a link to a moving upstream branch. The package includes the installed 1.5.5 sources, binding.gyp and rebuild notes; these do not independently certify exact prebuilt-binary provenance or LGPL compliance.
 
 The hook is loaded only after the user opts in and grants the required OS permission. The application consumes shortcut key events, not typed text, and does not store a keyboard event log.
 

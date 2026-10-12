@@ -31,9 +31,5 @@ User-imported characters, recordings, knowledge and conversations are not
 project assets and are excluded from publication. Logo use does not grant
 permission to imply an official release or affiliation.
 
-## Acknowledgments
-
-Open-LLM-VTuber informed the licensing-policy comparison; its code and project
-license are not used as a substitute for this project's or Live2D's licenses.
-Live2D SDK-derived files retain their upstream attribution. Acknowledgment does
-not imply endorsement by these projects or their authors.
+Live2D SDK-derived files retain their upstream attribution. The project is not
+an official Live2D product and does not imply endorsement by dependency authors.
