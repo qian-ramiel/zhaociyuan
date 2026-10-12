@@ -71,6 +71,8 @@ shasum -a 256 -c SHA256SUMS-beta.1.txt
 
 ## 开发者构建
 
-先安装项目依赖、本地语音模型和 `tools/packaging/requirements.txt` 中的打包依赖，再执行 `npm run package:mac`。产物在 `releases/`，默认不上传发布，也不会自动安装或覆盖运行中的应用。
+先安装项目依赖，使用 Python 3.12.15 或更新的 3.12 补丁版创建服务环境，再安装本地语音模型和 `tools/packaging/requirements.txt` 中的打包依赖，最后执行 `npm run package:mac`。产物在 `releases/`，默认不上传发布，也不会自动安装或覆盖运行中的应用。
+
+打包默认使用 `.venv/bin/python`。需要隔离构建环境时，可设置 `NICE_PEOPLE_PYTHON` 为已安装上述依赖的 Python 3.12 环境中解释器的绝对路径；已安装的应用仍使用包内服务，不依赖该环境变量或系统 Python。
 
 参考：[PyInstaller macOS 打包](https://pyinstaller.org/en/stable/feature-notes.html)、[electron-builder macOS 配置](https://www.electron.build/v26/docs/mac/)。

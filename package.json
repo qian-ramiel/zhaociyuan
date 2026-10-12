@@ -41,7 +41,8 @@
     "vite": "^8.2.1"
   },
   "overrides": {
-    "isbinaryfile": "5.0.7"
+    "isbinaryfile": "5.0.7",
+    "global-agent": "4.1.3"
   },
   "build": {
     "appId": "org.nicepeople.companion",

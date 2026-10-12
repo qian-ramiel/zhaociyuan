@@ -7,6 +7,12 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 process.chdir(root);
 if (process.platform !== 'darwin' || process.arch !== 'arm64') throw Error('This build profile requires an Apple Silicon Mac.');
+const python = process.env.NICE_PEOPLE_PYTHON || path.join(root, '.venv/bin/python');
+const runtime = spawnSync(python, ['-c', 'import sys; print(".".join(map(str, sys.version_info[:3])))'], { encoding: 'utf8' });
+const version = runtime.stdout?.trim().split('.').map(Number) || [];
+if (runtime.error || runtime.status !== 0 || version[0] !== 3 || version[1] !== 12 || !Number.isInteger(version[2]) || version[2] < 15) {
+  throw Error('Packaging requires Python 3.12.15 or a newer 3.12 patch. Set NICE_PEOPLE_PYTHON to a prepared environment.');
+}
 const stage = path.join(root, 'build/staging');
 const licenses = path.join(stage, 'licenses');
 // Rebuild generated resources from the allowlist; never carry stale files forward.
@@ -66,7 +72,7 @@ for (const [name, files] of [[asrName, ['model.int8.onnx', 'tokens.txt', 'LICENS
 }
 fs.writeFileSync(path.join(licenses, 'model-manifest.json'), JSON.stringify(manifest, null, 2));
 copy('docs/release/MAC-INSTALL.md', path.join(licenses, 'MAC-INSTALL.md'));
-run('.venv/bin/python', ['tools/packaging/python-notices.py', licenses]);
-run('.venv/bin/python', ['-m', 'PyInstaller', '--noconfirm', '--clean', '--distpath', 'build/staging', '--workpath', 'build/pyinstaller', 'tools/packaging/companion.spec'], {
+run(python, ['tools/packaging/python-notices.py', licenses]);
+run(python, ['-m', 'PyInstaller', '--noconfirm', '--clean', '--distpath', 'build/staging', '--workpath', 'build/pyinstaller', 'tools/packaging/companion.spec'], {
   PYTHONPATH: path.join(root, 'services/companion'), PYINSTALLER_CONFIG_DIR: path.join(root, 'build/pyinstaller/cache'),
 });

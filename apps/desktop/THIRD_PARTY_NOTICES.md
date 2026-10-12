@@ -22,6 +22,8 @@ The hook is loaded only after the user opts in and grants the required OS permis
 
 ## Existing voice runtime
 
+The frozen local service uses CPython 3.12.15 or a newer 3.12 security patch. Its original runtime license and Python/OpenSSL version record accompany the package under `licenses/python/CPython`. Python packages retain their own full notices and metadata under `licenses/python`.
+
 Markdown-to-text conversion uses Marked 18.1.0 (MIT): https://github.com/markedjs/marked. Full license: `node_modules/marked/LICENSE`. The application consumes its lexer tokens as text and never injects generated HTML into the companion bubble.
 
 Silero VAD assets, ONNX Runtime, sherpa-onnx and downloaded voice model weights retain their respective notices and licenses. Downloading weights or importing a character does not grant redistribution permission. Audit the exact files and include their notices before public release.

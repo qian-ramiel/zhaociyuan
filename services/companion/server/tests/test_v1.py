@@ -255,6 +255,44 @@ def test_knowledge_import_and_retrieval(client):
     assert '热可可' in knowledge.search('雨天喝什么')[0]['content']
 
 
+@pytest.mark.parametrize('image_format,suffix', [('PNG', 'png'), ('JPEG', 'jpg'), ('WEBP', 'webp')])
+def test_upgraded_image_parser_handles_actual_multipart_portraits(client, image_format, suffix):
+    image = io.BytesIO()
+    Image.new('RGB', (32, 48), (70, 160, 190)).save(image, format=image_format)
+    result = client.post('/api/characters/import', files={'file': (f'portrait.{suffix}', image.getvalue(), f'image/{suffix}')})
+    assert result.status_code == 200
+    decoded = Image.open(api.CHARACTERS_DIR / result.json()['model_path'])
+    assert decoded.size == (32, 48)
+    assert decoded.mode == 'RGBA'
+
+
+def test_upgraded_pdf_parser_imports_and_retrieves_actual_pdf_text(client):
+    from pypdf import PdfWriter
+    from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
+    writer = PdfWriter()
+    page = writer.add_blank_page(width=200, height=200)
+    font = DictionaryObject({NameObject('/Type'): NameObject('/Font'),
+                             NameObject('/Subtype'): NameObject('/Type1'),
+                             NameObject('/BaseFont'): NameObject('/Helvetica')})
+    page[NameObject('/Resources')] = DictionaryObject({NameObject('/Font'): DictionaryObject({NameObject('/F1'): font})})
+    content = DecodedStreamObject()
+    content.set_data(b'BT /F1 12 Tf 10 100 Td (PDF regression cocoa) Tj ET')
+    page[NameObject('/Contents')] = content
+    output = io.BytesIO()
+    writer.write(output)
+    result = client.post('/api/knowledge/import', files={'file': ('test.pdf', output.getvalue(), 'application/pdf')})
+    assert result.status_code == 200
+    assert result.json()['kind'] == 'pdf'
+    assert 'PDF regression cocoa' in knowledge.search('cocoa')[0]['content']
+
+
+def test_upgraded_multipart_parser_rejects_missing_boundary_without_writing_data(client):
+    before = client.get('/api/characters').json()
+    result = client.post('/api/characters/import', content=b'invalid multipart', headers={'Content-Type': 'multipart/form-data'})
+    assert result.status_code == 400
+    assert client.get('/api/characters').json() == before
+
+
 def test_background_observation_respects_proactive_off(client):
     state = client.get('/api/settings').json()['companion']
     state['screen']['enabled'] = True
