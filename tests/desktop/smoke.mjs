@@ -35,8 +35,9 @@ try {
   assert.ok(page, 'Control window missing');
   page.on('pageerror', (e) => report.errors.push(e.message));
   await page.getByRole('button', { name: '陪伴', exact: true }).waitFor({ timeout: 60000 });
-  await page.getByText('还没有角色', { exact: true }).waitFor();
-  await page.screenshot({ path: path.join(qa, 'v2-05-empty.png') });
+  await page.waitForFunction(() => window.desktop.api('/api/bootstrap').then((data) => data.roles.length === 2));
+  await page.screenshot({ path: path.join(qa, 'v2-05-builtin-characters.png') });
+  await page.getByRole('button', { name: '角色库', exact: true }).click();
   await page.getByRole('button', { name: '创建角色', exact: true }).click();
   await page.getByLabel('角色名称', { exact: true }).fill('桌面测试角色');
   await page.getByLabel('角色简介', { exact: true }).fill('真实窗口回归测试');
@@ -45,7 +46,7 @@ try {
   await page.getByRole('button', { name: '添加形象', exact: true }).waitFor();
   await page.evaluate(async () => {
     const data = await window.desktop.api('/api/bootstrap');
-    const asset = data.assets.find((a) => a.model_path.includes('Hiyori'));
+    const asset = data.assets.find((a) => a.id === 'builtin-hiyori');
     if (!asset) throw Error('Hiyori resource missing');
     for (const [name, framing] of [['全身', 'full'], ['半身', 'half'], ['mini', 'mini']]) await window.desktop.api('/api/appearances', { method: 'POST', body: { name, assetId: asset.id, framing, aliases: [name + '形象'] } });
     const modes = [{ id: 'daily', name: '日常闲聊', prompt: '自然交流', screenAllowed: true }, { id: 'game', name: '游戏陪玩', prompt: '简短建议', screenAllowed: true }];

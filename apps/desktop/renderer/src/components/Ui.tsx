@@ -1,9 +1,10 @@
+import { t } from '../i18n';
 import { LoaderCircle, Save, X } from 'lucide-react';
 import { Children, cloneElement, isValidElement, useEffect, useRef } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 
-export function IconButton({ title, children, onClick, active = false, disabled = false, checked, label }: { title: string; children: ReactNode; onClick?: () => void; active?: boolean; disabled?: boolean; checked?: boolean; label?: string }) {
-  return <button type="button" className={`icon-button ${active ? 'active' : ''}`} title={title} aria-label={label || title} role={checked === undefined ? undefined : 'switch'} aria-checked={checked} onClick={onClick} disabled={disabled}>{children}</button>;
+export function IconButton({ title, children, onClick, active = false, disabled = false, checked, label, action }: { title: string; children: ReactNode; onClick?: () => void; active?: boolean; disabled?: boolean; checked?: boolean; label?: string; action?: string }) {
+  return <button type="button" className={`icon-button ${active ? 'active' : ''}`} data-action={action} title={title} aria-label={label || title} role={checked === undefined ? undefined : 'switch'} aria-checked={checked} onClick={onClick} disabled={disabled}>{children}</button>;
 }
 export function Toggle({ checked, onChange, label, disabled = false }: { checked: boolean; onChange: (value: boolean) => void; label: string; disabled?: boolean }) {
   return <button type="button" className={`toggle ${checked ? 'on' : ''}`} role="switch" aria-checked={checked} aria-label={label} onClick={() => onChange(!checked)} disabled={disabled}><span /></button>;
@@ -23,7 +24,7 @@ export function PageHeader({ title, subtitle, children }: { title: string; subti
   return <header className="page-heading"><div><h1>{title}</h1>{subtitle && <p>{subtitle}</p>}</div><div className="header-actions">{children}</div></header>;
 }
 export function SaveButton({ onClick, busy }: { onClick: () => void; busy?: boolean }) {
-  return <button type="button" className="primary" onClick={onClick} disabled={busy}>{busy ? <LoaderCircle size={16} className="spin" /> : <Save size={16} />}保存</button>;
+  return <button type="button" className="primary" onClick={onClick} disabled={busy}>{busy ? <LoaderCircle size={16} className="spin" /> : <Save size={16} />}{t("保存")}</button>;
 }
 export function Modal({ title, children, onClose, footer }: { title: string; children: ReactNode; onClose: () => void; footer?: ReactNode }) {
   const dialog = useRef<HTMLElement>(null);
@@ -40,6 +41,6 @@ export function Modal({ title, children, onClose, footer }: { title: string; chi
     const first = nodes[0], last = nodes.at(-1);
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
-  }}><header><h2>{title}</h2><IconButton title="关闭" onClick={onClose}><X size={18} /></IconButton></header>{children}{footer && <footer className="dialog-footer">{footer}</footer>}</section></div>;
+  }}><header><h2>{title}</h2><IconButton title={t("关闭")} onClick={onClose}><X size={18} /></IconButton></header>{children}{footer && <footer className="dialog-footer">{footer}</footer>}</section></div>;
 }
 export function Empty({ children }: { children: ReactNode }) { return <div className="empty-state">{children}</div>; }

@@ -141,6 +141,7 @@ class ImageSettings(BaseModel):
 
 
 class DesktopSettings(BaseModel):
+    language: Optional[Literal['zh', 'en', 'ja']] = None
     visible: bool = True
     clickThrough: bool = False
     alwaysOnTop: bool = True

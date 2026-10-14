@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "models": [
+    {
+      "id": "mao",
+      "name": "虹色 Mao",
+      "source": "https://www.live2d.com/en/learn/sample/niziiro-mao/",
+      "archiveUrl": "https://cubism.live2d.com/sample-data/bin/mao/mao_en.zip",
+      "archiveSha256": "c6bc527b3d8877f0735f4099b34c2b9bb17162d77b5957687839c74d374449d3",
+      "runtimePrefix": "runtime/",
+      "readme": "ReadMe.txt",
+      "model": "runtime/mao_pro.model3.json",
+      "previewSha256": "5071b7bad795ed014a721c9bbb3c4cd71c3251964e723441d237520c402c7d59",
+      "credit": "Illustration and modeling: Live2D Inc.",
+      "expressions": { "idle": "exp_01", "listening": "exp_01", "thinking": "exp_01", "speaking": "exp_01", "happy": "exp_02", "joy": "exp_04", "angry": "exp_08", "sad": "exp_05", "surprised": "exp_07" }
+    },
+    {
+      "id": "hiyori",
+      "name": "桃濑日和 Hiyori",
+      "source": "https://www.live2d.com/en/learn/sample/momose-hiyori/",
+      "archiveUrl": "https://cubism.live2d.com/sample-data/bin/hiyori/hiyori_en.zip",
+      "archiveSha256": "1e4254d561f2a151562aa67036d78e17e4ffee08869b8ce10ab6052a05e2b3a4",
+      "runtimePrefix": "hiyori_pro/runtime/",
+      "readme": "hiyori_pro/ReadMe.txt",
+      "model": "runtime/hiyori_pro_t11.model3.json",
+      "previewSha256": "d7748bdac54ec5d24c0f5e6b4566162f2b63df563f2b64619e2dde13afc4759e",
+      "credit": "Illustration: Kani Biimu. Modeling: Live2D Inc. Character design must not be modified.",
+      "expressions": {}
+    }
+  ]
+}

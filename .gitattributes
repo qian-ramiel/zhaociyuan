@@ -1,0 +1,4 @@
+# Preserve reviewed upstream bytes so model checksums also work after cross-platform clones.
+resources/builtin-characters/** -text
+resources/builtin-characters/mao/ReadMe.txt -whitespace
+resources/builtin-characters/hiyori/ReadMe.txt -whitespace

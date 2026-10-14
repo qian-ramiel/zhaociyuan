@@ -6,6 +6,15 @@ This is a component inventory, not certification of redistribution compliance.
 
 ## Live2D
 
+This content uses sample data owned and copyrighted by Live2D Inc.
+The sample data are utilized in accordance with terms and conditions set by
+Live2D Inc. This content itself is created at the author's sole discretion.
+
+The bundled example characters are Niziiro Mao (illustration/modeling: Live2D
+Inc.) and Hiyori Momose (illustration: Kani Biimu; modeling: Live2D Inc.).
+Their full notices and separate terms are in `resources/builtin-characters/`.
+These model assets are not licensed under the application's code license.
+
 Live2D Cubism Core is proprietary software owned by Live2D Inc. The included
 unmodified runtime is not covered by the application license.
 

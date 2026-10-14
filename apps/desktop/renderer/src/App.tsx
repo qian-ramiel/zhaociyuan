@@ -1,3 +1,4 @@
+import { t, setLanguage, useLanguage, dateLocale, modeLabel } from './i18n';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { companionText } from '../../companion-text.mjs';
 import { proactiveState, screenState } from '../../observation.mjs';
@@ -30,6 +31,7 @@ const pages: { id: Page; label: string; icon: typeof MessageCircle }[] = [
 ];
 
 export default function App() {
+  const language = useLanguage();
   const [data, setData] = useState<Bootstrap | null>(null);
   const [page, setPage] = useState<Page>('companion');
   const [configTab, setConfigTab] = useState<ConfigurationTab>('llm');
@@ -54,6 +56,7 @@ export default function App() {
   const [imageSuggestion, setImageSuggestion] = useState('');
   const [imageBusy, setImageBusy] = useState(false);
   const [toast, setToast] = useState<{ text: string; error: boolean } | null>(null);
+  useEffect(() => setToast(null), [language]);
   const dataRef = useRef(data); dataRef.current = data;
   const busyRef = useRef(busy); busyRef.current = busy;
   const latestRequest = useRef<string | null>(null);
@@ -83,6 +86,7 @@ export default function App() {
     const next = await api<Bootstrap>('/api/bootstrap');
     setData(next); setLoadingError('');
     const desktop = next.desktop || prefsRef.current;
+    setLanguage(desktop.language);
     setPreferences(desktop); prefsRef.current = desktop;
     setOverlayVisible(desktop.visible); setMuted(!desktop.speechEnabled);
     setPage((current) => !next.activeRoleId && !['profiles', 'settings'].includes(current) ? 'roles' : current);
@@ -113,7 +117,7 @@ export default function App() {
   useEffect(() => { reload().catch((e) => setLoadingError(e.message)); }, [reload]);
   useEffect(() => { window.desktop?.overlay({}).then((v) => setOverlayVisible(v.visible)); }, []);
   const action = useCallback(async (operation: () => Promise<unknown>, message?: string) => {
-    try { await operation(); if (message) notify(message); } catch (error) { notify(error instanceof Error ? error.message : '操作失败', true); }
+    try { await operation(); if (message) notify(message); } catch (error) { notify(error instanceof Error ? error.message : t("操作失败"), true); }
   }, [notify]);
 
   const stopAudio = useCallback(() => {
@@ -136,7 +140,7 @@ export default function App() {
     try { await new Promise<void>((resolve, reject) => {
       audioResolve.current = resolve;
       current.onended = () => { if (audio.current === current) { audio.current = null; setStatus('idle'); } resolve(); };
-      current.onerror = () => { if (audio.current === current) setStatus('idle'); reject(new Error('音频播放失败')); };
+      current.onerror = () => { if (audio.current === current) setStatus('idle'); reject(new Error(t("音频播放失败"))); };
       current.onpause = () => resolve();
       current.play().catch(reject);
     }); } finally { current.onended = null; current.onerror = null; current.onpause = null; stopMouth(); if (audio.current === current) { audio.current = null; setStatus('idle'); } if (mouthStop.current === stopMouth) mouthStop.current = null; }
@@ -147,7 +151,7 @@ export default function App() {
     text = companionText(text);
     if (!text.trim()) return;
     if (mutedRef.current || !prefsRef.current.speechEnabled) {
-      if (manual) notify('语音已关闭，请打开语音开关后重试', true);
+      if (manual) notify(t("语音已关闭，请打开语音开关后重试"), true);
       return;
     }
     if (!manual && !continuousRef.current && !dataRef.current?.settings.providers.tts.autoplay) return;
@@ -155,7 +159,7 @@ export default function App() {
     try {
       const result = await api<{ audio_url: string }>('/api/tts/synthesize', 'POST', { text });
       if (epoch === audioEpoch.current && !mutedRef.current && prefsRef.current.speechEnabled) await playAudio(result.audio_url);
-    } catch (error) { notify(error instanceof Error ? error.message : '语音生成失败', true); void reportIssue('playback'); }
+    } catch (error) { notify(error instanceof Error ? error.message : t("语音生成失败"), true); void reportIssue('playback'); }
   }, [notify, playAudio, reportIssue]);
 
   const saveCompanion = async (value: Companion) => {
@@ -168,18 +172,18 @@ export default function App() {
   };
 
   const capture = async () => {
-    if (!prefsRef.current.visionEnabled) throw new Error('视觉开关已关闭');
-    if (!window.desktop) throw new Error('屏幕观察需要桌面程序');
+    if (!prefsRef.current.visionEnabled) throw new Error(t("视觉开关已关闭"));
+    if (!window.desktop) throw new Error(t("屏幕观察需要桌面程序"));
     try {
       const result = await window.desktop.capture();
-      if (!prefsRef.current.visionEnabled) throw new Error('视觉开关已关闭');
+      if (!prefsRef.current.visionEnabled) throw new Error(t("视觉开关已关闭"));
       setCaptureError(''); setLatest(result);
       return result;
     } catch (error) { setLatest(null); setCaptureError(cleanError(error)); void reportIssue('capture'); throw new Error(cleanError(error)); }
   };
 
   const generateImage = async (prompt: string) => {
-    if (imageBusy) throw new Error('上一张图片仍在生成');
+    if (imageBusy) throw new Error(t("上一张图片仍在生成"));
     setImageBusy(true);
     const epoch = roleEpoch.current;
     try {
@@ -187,7 +191,7 @@ export default function App() {
       if (epoch !== roleEpoch.current) return;
       setData((old) => old ? { ...old, messages: [...old.messages, { id: -Date.now(), role: 'assistant', content: '', image_url: result.image_url, created_at: new Date().toISOString() }] } : old);
       setImageSuggestion('');
-      notify('图片已生成');
+      notify(t("图片已生成"));
     } finally { setImageBusy(false); }
   };
 
@@ -240,7 +244,7 @@ export default function App() {
     const settings = dataRef.current.settings.companion.screen;
     const allowed = dataRef.current.modes.find((m) => m.id === dataRef.current?.settings.companion.mode)?.screenAllowed;
     if (prefsRef.current.visionEnabled && settings.enabled && !settings.paused && settings.onMessage && allowed) {
-      try { screen = await capture(); } catch (e) { notify('本次未附带画面：' + (e instanceof Error ? e.message : '捕获失败'), true); }
+      try { screen = await capture(); } catch (e) { notify(t("本次未附带画面：") + (e instanceof Error ? e.message : t("捕获失败")), true); }
     }
     if (latestRequest.current !== requestId) return;
     try {
@@ -261,11 +265,11 @@ export default function App() {
             setData((old) => old ? { ...old, messages: [...old.messages.filter((message) => message.id !== partialId), { id: partialId, role: 'assistant', content: text, created_at: new Date().toISOString() }] } : old);
             speaker?.add(event.delta || '');
           } else if (event.type === 'done') completed = event.result;
-          else if (event.type === 'error') { providerFailure = true; failure = Error(event.message || '生成失败'); }
-          else if (event.type === 'cancelled') failure = Error('本次生成已停止');
+          else if (event.type === 'error') { providerFailure = true; failure = Error(event.message || t("生成失败")); }
+          else if (event.type === 'cancelled') failure = Error(t("本次生成已停止"));
         }, controller.signal);
         if (failure) throw failure;
-        if (!completed) throw Error('模型流式连接提前结束');
+        if (!completed) throw Error(t("模型流式连接提前结束"));
         result = completed;
         if (latestRequest.current !== requestId) return;
         setData((old) => old ? { ...old, messages: old.messages.filter((message) => message.id !== partialId) } : old);
@@ -280,7 +284,7 @@ export default function App() {
       if (!useStream) await acceptReply(result, optimisticId, screen, requestId);
     } catch (error) {
       if (latestRequest.current === requestId) {
-        notify(error instanceof Error ? error.message : '发送失败', true);
+        notify(error instanceof Error ? error.message : t("发送失败"), true);
         void reportIssue('client-stream', requestId, requestRole, { phase: failurePhase, errorType: providerFailure ? 'provider' : runtimeErrorType(error), durationMs: Math.min(3600000, Math.round(performance.now() - started)) });
         streamSpeaker.current?.cancel(); stopAudio();
         setData((old) => old ? { ...old, messages: old.messages.filter((m) => m.id !== optimisticId && m.id !== partialId) } : old);
@@ -293,7 +297,7 @@ export default function App() {
   };
 
   const observe = async (trigger: 'manual' | 'periodic' | 'change' = 'manual', workflowId?: string, provided?: ScreenContext) => {
-    if (!prefsRef.current.visionEnabled) throw new Error('视觉开关已关闭');
+    if (!prefsRef.current.visionEnabled) throw new Error(t("视觉开关已关闭"));
     if (observationBusy.current || busyRef.current) return;
     observationBusy.current = true;
     if (trigger === 'manual') setStatus('observing');
@@ -301,7 +305,7 @@ export default function App() {
       const screen = provided || await capture();
       const result = await api<ChatResult & { shouldSpeak: boolean; reason?: string }>('/api/observe', 'POST', { screen, trigger, workflowId });
       if (prefsRef.current.visionEnabled && result.shouldSpeak && !busyRef.current) await acceptReply(result, undefined, screen);
-      else if (trigger === 'manual') notify(result.reason || '本次没有回复');
+      else if (trigger === 'manual') notify(result.reason || t("本次没有回复"));
     } finally { observationBusy.current = false; if (!busyRef.current) setStatus('idle'); }
   };
 
@@ -325,7 +329,7 @@ export default function App() {
     onInterrupt: () => voiceCallbacks.current.stopGeneration(),
     onTranscript: (text, mode) => {
       if (mode === 'call') { void voiceCallbacks.current.sendMessage(text, 'voice'); return; }
-      if (!text) { ptt.current.autoSend = false; voiceCallbacks.current.notify('没有检测到清晰人声，请重试'); return; }
+      if (!text) { ptt.current.autoSend = false; voiceCallbacks.current.notify(t("没有检测到清晰人声，请重试")); return; }
       if (ptt.current.autoSend || dataRef.current?.settings.providers.asr.autoSend) {
         ptt.current.autoSend = false;
         void voiceCallbacks.current.sendMessage(text, 'voice');
@@ -335,8 +339,8 @@ export default function App() {
   });
   const stopVoice = () => { ptt.current.held = false; ptt.current.autoSend = false; ptt.current.generation++; void voiceSession.current?.stop(); };
   const startVoice = async (mode: 'draft' | 'call') => {
-    if (!prefsRef.current.hearingEnabled) throw new Error('听觉开关已关闭');
-    if (!dataRef.current?.activeRoleId) throw new Error('请先选择角色');
+    if (!prefsRef.current.hearingEnabled) throw new Error(t("听觉开关已关闭"));
+    if (!dataRef.current?.activeRoleId) throw new Error(t("请先选择角色"));
     stopGeneration();
     await voiceSession.current?.start(mode);
   };
@@ -361,7 +365,7 @@ export default function App() {
   });
   const pttStart = () => {
     if (ptt.current.held) return;
-    if (voicePhase === 'transcribing' && !voiceSession.current?.active) { notify('上一段语音正在转写，请稍后再按住说话'); return; }
+    if (voicePhase === 'transcribing' && !voiceSession.current?.active) { notify(t("上一段语音正在转写，请稍后再按住说话")); return; }
     stopVoice(); ptt.current.held = true; ptt.current.autoSend = true;
     const generation = ptt.current.generation;
     ptt.current.ready = action(async () => {
@@ -431,6 +435,7 @@ export default function App() {
   useEffect(() => window.desktop?.onState((state) => {
     if (!state.desktopPreferences) return;
     const next = state.desktopPreferences;
+    setLanguage(next.language);
     prefsRef.current = next; setPreferences(next); setOverlayVisible(next.visible); setMuted(!next.speechEnabled);
     if (!next.speechEnabled) stopAudio();
     if (!next.hearingEnabled) stopVoice();
@@ -442,7 +447,7 @@ export default function App() {
     setData((old) => old ? { ...old, settings: { ...old.settings, companion: { ...old.settings.companion, activeAppearanceId: id } } } : old);
   };
   const toggleOverlay = () => action(async () => {
-    if (!window.desktop) throw new Error('请从桌面程序打开悬浮角色');
+    if (!window.desktop) throw new Error(t("请从桌面程序打开悬浮角色"));
     const next = await window.desktop.overlay({ visible: !overlayVisible, framing: currentAppearance?.framing });
     setOverlayVisible(next.visible);
   });
@@ -473,9 +478,9 @@ export default function App() {
     previousRole.current = data?.activeRoleId;
   }, [data?.activeRoleId]);
 
-  if (!data) return <div className="loading-screen"><img className="brand-mark" src="/brand/logo.png" alt="兆次元 Logo" /><h1>兆次元</h1>{loadingError ? <><p>{loadingError}</p><button className="secondary" onClick={() => action(reload)}><RefreshCw size={16} />重试连接</button></> : <LoaderCircle className="spin" size={22} />}</div>;
+  if (!data) return <div className="loading-screen"><img className="brand-mark" src="/brand/logo.png" alt={t("兆次元 Logo")} /><h1>兆次元</h1>{loadingError ? <><p>{t(loadingError)}</p><button className="secondary" onClick={() => action(reload)}><RefreshCw size={16} />{t("重试连接")}</button></> : <LoaderCircle className="spin" size={22} />}</div>;
   const companion = data.settings.companion;
-  const modeNames = Object.fromEntries(data.modes.map((m) => [m.id, m.name]));
+  const modeNames = Object.fromEntries(data.modes.map((m) => [m.id, modeLabel(m)]));
   const submit = () => { const content = input.trim(); if (!content || (busy && !continuousRef.current)) return; setInput(''); void sendMessage(content); };
   const shared = { action, reload };
   const content = () => {
@@ -488,30 +493,30 @@ export default function App() {
       case 'configuration': return <ConfigurationPage tab={configTab} setTab={setConfigTab}>
         {configTab === 'llm' || configTab === 'tts' ? <ProvidersPage {...shared} section={configTab} value={data.settings.providers} onAudio={playAudio} profiles={data.profiles} onProfiles={() => setPage('profiles')} /> : configTab === 'vision' ? <>
           <ScreenPage value={companion} desktop={preferences} mode={data.modes.find((m) => m.id === companion.mode)} action={action} save={saveCompanion} latest={latest} onPreview={async () => { await capture(); }} />
-          <details className="vision-model-settings"><summary>视觉模型</summary><ProvidersPage {...shared} section="vision" value={data.settings.providers} onAudio={playAudio} profiles={data.profiles} /></details>
+          <details className="vision-model-settings"><summary>{t("视觉模型")}</summary><ProvidersPage {...shared} section="vision" value={data.settings.providers} onAudio={playAudio} profiles={data.profiles} /></details>
         </> : <MemoryPage {...shared} items={data.memories} documents={data.documents} value={companion} save={saveCompanion} />}
       </ConfigurationPage>;
       case 'events': return <EventsPage items={data.events} refresh={() => action(refreshEvents)} />;
       case 'settings': return <GeneralPage {...shared} data={data} />;
       default: return <div className="companion-layout">
-        <section className="companion-scene"><header><div><span className="overline">当前角色</span><h1>{data.settings.persona.characterName}</h1></div><button className="secondary compact" onClick={toggleOverlay}><Monitor size={15} />{overlayVisible ? '隐藏桌面角色' : '桌面角色'}</button></header>
+        <section className="companion-scene"><header><div><span className="overline">{t("当前角色")}</span><h1>{data.settings.persona.characterName}</h1></div><button className="secondary compact" onClick={toggleOverlay}><Monitor size={15} />{overlayVisible ? t("隐藏桌面角色") : t("桌面角色")}</button></header>
           <div className="mode-bar segmented">{(Object.keys(modeNames) as Mode[]).map((mode) => <button key={mode} className={companion.mode === mode ? 'selected' : ''} onClick={() => action(() => saveCompanion({ ...companion, mode }))}>{modeNames[mode]}</button>)}</div>
           <div className="scene-avatar"><Avatar appearance={currentAppearance} emotion={emotion} status={status} motions={data.settings.motions} onError={(error) => notify(error, true)} /></div>
-          <div className="scene-footer"><label className="appearance-selector"><UserRound size={16} /><select aria-label="当前形象" value={companion.activeAppearanceId} onChange={(e) => action(() => activate(e.target.value))}>{!data.appearances.length && <option value="">未配置形象</option>}{data.appearances.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select><ChevronDown size={14} /></label><span className="emotion-label">{emotionNames[emotion]}</span></div>
-          <div className="presence-controls"><RowControl label="主动发言"><Toggle label="主动发言" checked={companion.proactive} onChange={(v) => action(async () => { await api('/api/modes/' + companion.mode + '/proactive', 'PATCH', { enabled: v }); await reload(); })} /></RowControl><RowControl label="专注"><Toggle label="专注" checked={companion.focus} onChange={(v) => action(() => saveCompanion({ ...companion, focus: v }))} /></RowControl><IconButton title={companion.screen.paused ? '恢复屏幕感知' : '暂停屏幕感知'} active={companion.screen.paused} onClick={() => action(() => saveCompanion({ ...companion, screen: { ...companion.screen, paused: !companion.screen.paused } }))}>{companion.screen.paused ? <Play size={17} /> : <Pause size={17} />}</IconButton></div>
+          <div className="scene-footer"><label className="appearance-selector"><UserRound size={16} /><select aria-label={t("当前形象")} value={companion.activeAppearanceId} onChange={(e) => action(() => activate(e.target.value))}>{!data.appearances.length && <option value="">{t("未配置形象")}</option>}{data.appearances.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select><ChevronDown size={14} /></label><span className="emotion-label">{t(emotionNames[emotion])}</span></div>
+          <div className="presence-controls"><RowControl label={t("主动发言")}><Toggle label={t("主动发言")} checked={companion.proactive} onChange={(v) => action(async () => { await api('/api/modes/' + companion.mode + '/proactive', 'PATCH', { enabled: v }); await reload(); })} /></RowControl><RowControl label={t("专注")}><Toggle label={t("专注")} checked={companion.focus} onChange={(v) => action(() => saveCompanion({ ...companion, focus: v }))} /></RowControl><IconButton title={companion.screen.paused ? t("恢复屏幕感知") : t("暂停屏幕感知")} active={companion.screen.paused} onClick={() => action(() => saveCompanion({ ...companion, screen: { ...companion.screen, paused: !companion.screen.paused } }))}>{companion.screen.paused ? <Play size={17} /> : <Pause size={17} />}</IconButton></div>
         </section>
-        <section className="chat-panel"><header><div><MessageCircle size={17} /><strong>陪伴对话</strong><span className="badge">{modeNames[companion.mode]}</span></div><div><IconButton title={muted ? '取消静音' : '静音'} active={muted} onClick={toggleSound}>{muted ? <VolumeX size={17} /> : <Volume2 size={17} />}</IconButton><IconButton title="清空当前对话" disabled={!data.messages.length || busy} onClick={() => setClearing(true)}><Trash2 size={17} /></IconButton></div></header>
-          {!data.health.modelConfigured && <button className="connection-notice" onClick={() => { setConfigTab('llm'); setPage('configuration'); }}><span className="status-dot amber" />对话模型待配置<SlidersHorizontal size={14} /></button>}
-          <div className="messages" ref={scroll}>{!data.messages.length && <div className="chat-empty"><MessageCircle size={29} /><p>今天想聊些什么？</p><span>{data.settings.persona.characterName} · {currentAppearance?.name || '未选择形象'}</span></div>}{data.messages.map((message) => <article className={'message ' + message.role} key={message.id}><div className="message-meta"><span>{message.role === 'user' ? '你' : data.settings.persona.characterName}</span><time>{new Date(message.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</time>{message.role === 'assistant' && message.content && <IconButton title="朗读这条消息" onClick={() => { stopAudio(); void action(() => speak(message.content, true)); }}><Volume2 size={12} /></IconButton>}</div>{message.screen_context && <ScreenAttachment metadata={message.screen_context} preview={previewRole.current === data.activeRoleId ? screenPreviews[message.id] : undefined} />}{message.content && <p>{message.content}</p>}{message.image_url && <img className="message-image" src={message.image_url} alt="生成图片" />}</article>)}{busy && <div className="thinking"><LoaderCircle size={14} className="spin" />{data.messages.some((message) => message.role === 'assistant' && message.id < 0) ? '正在回复…' : '正在思考'}</div>}{imageBusy && <div className="thinking"><Images size={14} />正在画图</div>}</div>
-          {imageSuggestion && <div className="image-suggestion"><Images size={16} /><span>要把这个场景画出来吗？</span><button onClick={() => action(() => generateImage(imageSuggestion))}>生成</button><IconButton title="忽略图片建议" onClick={() => setImageSuggestion('')}><X size={14} /></IconButton></div>}
-          <div className={'composer ' + (continuous ? 'in-call' : recording ? 'recording' : '')}>{(recording || continuous || voicePhase === 'transcribing') && <span className="recording-status"><span className="status-dot" />{voicePhase === 'loading' ? '正在连接…' : voicePhase === 'transcribing' ? '正在转写…' : continuous ? (status === 'speaking' ? '正在播报…' : busy ? '等待模型回复…' : '正在倾听…') : '正在录音'}</span>}<textarea aria-label="聊天输入" placeholder="和角色说点什么…" rows={3} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); submit(); } }} /><div className="composer-toolbar"><div><IconButton title={recording ? '结束本次录音' : '语音输入'} active={recording} disabled={!continuous && voicePhase === 'transcribing'} onClick={toggleVoice}>{recording ? <Square size={17} /> : <Mic size={18} />}</IconButton><IconButton title={continuous ? "挂断通话" : "开始通话"} active={continuous} onClick={toggleContinuous}>{continuous ? <PhoneOff size={18} /> : <Phone size={18} />}</IconButton><IconButton label="屏幕感知总开关" title={preferences.visionEnabled ? "关闭屏幕感知" : "开启屏幕感知"} checked={preferences.visionEnabled} active={preferences.visionEnabled} onClick={toggleVision}>{preferences.visionEnabled ? <Eye size={18} /> : <EyeOff size={18} />}</IconButton></div><div>{(busy || status === 'speaking') && <IconButton title="停止生成或播放" onClick={stopGeneration}><Square size={17} /></IconButton>}<button className="send-button" title="发送" aria-label="发送" disabled={!input.trim() || (busy && !continuous)} onClick={submit}><ArrowUp size={18} /></button></div></div></div>
-<div className="chat-context"><span className={'status-dot ' + (!screenState(preferences, companion.screen, data.modes.find((m) => m.id === companion.mode), !!captureError).allowed ? 'off' : '')} />{screenState(preferences, companion.screen, data.modes.find((m) => m.id === companion.mode), !!captureError).reason || (companion.screen.onMessage ? '下次发送尝试附图' : '屏幕感知已就绪')}<span>记忆 {data.memories.filter((m) => m.enabled).length}</span></div>
+        <section className="chat-panel"><header><div><MessageCircle size={17} /><strong>{t("陪伴对话")}</strong><span className="badge">{modeNames[companion.mode]}</span></div><div><IconButton title={muted ? t("取消静音") : t("静音")} active={muted} onClick={toggleSound}>{muted ? <VolumeX size={17} /> : <Volume2 size={17} />}</IconButton><IconButton title={t("清空当前对话")} disabled={!data.messages.length || busy} onClick={() => setClearing(true)}><Trash2 size={17} /></IconButton></div></header>
+          {!data.health.modelConfigured && <button className="connection-notice" onClick={() => { setConfigTab('llm'); setPage('configuration'); }}><span className="status-dot amber" />{t("对话模型待配置")}<SlidersHorizontal size={14} /></button>}
+          <div className="messages" ref={scroll}>{!data.messages.length && <div className="chat-empty"><MessageCircle size={29} /><p>{t("今天想聊些什么？")}</p><span>{data.settings.persona.characterName} · {currentAppearance?.name || t("未选择形象")}</span></div>}{data.messages.map((message) => <article className={'message ' + message.role} key={message.id}><div className="message-meta"><span>{message.role === 'user' ? t("你") : data.settings.persona.characterName}</span><time>{new Date(message.created_at).toLocaleTimeString(dateLocale(), { hour: '2-digit', minute: '2-digit' })}</time>{message.role === 'assistant' && message.content && <IconButton title={t("朗读这条消息")} onClick={() => { stopAudio(); void action(() => speak(message.content, true)); }}><Volume2 size={12} /></IconButton>}</div>{message.screen_context && <ScreenAttachment metadata={message.screen_context} preview={previewRole.current === data.activeRoleId ? screenPreviews[message.id] : undefined} />}{message.content && <p>{message.content}</p>}{message.image_url && <img className="message-image" src={message.image_url} alt={t("生成图片")} />}</article>)}{busy && <div className="thinking"><LoaderCircle size={14} className="spin" />{data.messages.some((message) => message.role === 'assistant' && message.id < 0) ? t("正在回复…") : t("正在思考")}</div>}{imageBusy && <div className="thinking"><Images size={14} />{t("正在画图")}</div>}</div>
+          {imageSuggestion && <div className="image-suggestion"><Images size={16} /><span>{t("要把这个场景画出来吗？")}</span><button onClick={() => action(() => generateImage(imageSuggestion))}>{t("生成")}</button><IconButton title={t("忽略图片建议")} onClick={() => setImageSuggestion('')}><X size={14} /></IconButton></div>}
+          <div className={'composer ' + (continuous ? 'in-call' : recording ? 'recording' : '')}>{(recording || continuous || voicePhase === 'transcribing') && <span className="recording-status"><span className="status-dot" />{voicePhase === 'loading' ? t("正在连接…") : voicePhase === 'transcribing' ? t("正在转写…") : continuous ? (status === 'speaking' ? t("正在播报…") : busy ? t("等待模型回复…") : t("正在倾听…")) : t("正在录音")}</span>}<textarea aria-label={t("聊天输入")} placeholder={t("和角色说点什么…")} rows={3} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); submit(); } }} /><div className="composer-toolbar"><div><IconButton title={recording ? t("结束本次录音") : t("语音输入")} active={recording} disabled={!continuous && voicePhase === 'transcribing'} onClick={toggleVoice}>{recording ? <Square size={17} /> : <Mic size={18} />}</IconButton><IconButton action={continuous ? "end-call" : undefined} title={continuous ? t("挂断通话") : t("开始通话")} active={continuous} onClick={toggleContinuous}>{continuous ? <PhoneOff size={18} /> : <Phone size={18} />}</IconButton><IconButton label={t("屏幕感知总开关")} title={preferences.visionEnabled ? t("关闭屏幕感知") : t("开启屏幕感知")} checked={preferences.visionEnabled} active={preferences.visionEnabled} onClick={toggleVision}>{preferences.visionEnabled ? <Eye size={18} /> : <EyeOff size={18} />}</IconButton></div><div>{(busy || status === 'speaking') && <IconButton title={t("停止生成或播放")} onClick={stopGeneration}><Square size={17} /></IconButton>}<button className="send-button" title={t("发送")} aria-label={t("发送")} disabled={!input.trim() || (busy && !continuous)} onClick={submit}><ArrowUp size={18} /></button></div></div></div>
+<div className="chat-context"><span className={'status-dot ' + (!screenState(preferences, companion.screen, data.modes.find((m) => m.id === companion.mode), !!captureError).allowed ? 'off' : '')} />{t(screenState(preferences, companion.screen, data.modes.find((m) => m.id === companion.mode), !!captureError).reason) || (companion.screen.onMessage ? t("下次发送尝试附图") : t("屏幕感知已就绪"))}<span>{t("记忆") + ' '}{data.memories.filter((m) => m.enabled).length}</span></div>
         </section>
       </div>;
     }
   };
 
-  return <div className="app-shell"><aside className="sidebar"><div className="brand"><img className="brand-mark" src="/brand/logo.png" alt="兆次元 Logo" /><div><strong>兆次元</strong><small>AI 伴侣 <span>1.0</span></small></div></div><nav>{pages.filter((item) => ['companion', 'roles'].includes(item.id)).map((item) => <button key={item.id} className={page === item.id ? 'selected' : ''} title={item.label} onClick={() => setPage(item.id)}><item.icon size={17} />{item.label}</button>)}{data.activeRoleId && <><div className="nav-role">{data.roles.find((role) => role.id === data.activeRoleId)?.previewUrl ? <img className="nav-role-avatar" src={data.roles.find((role) => role.id === data.activeRoleId)!.previewUrl!} alt="" /> : <UserRound size={17} />}<select aria-label="当前角色" value={data.activeRoleId} onChange={(e) => action(() => selectRole(e.target.value, 'persona'))}>{data.roles.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}</select></div>{pages.filter((item) => !['companion', 'roles', 'profiles', 'settings'].includes(item.id)).map((item) => <button key={item.id} title={item.label} className={((page === item.id || (page === 'profiles' && item.id === 'configuration')) ? 'selected' : '') + ' nav-owned'} onClick={() => setPage(item.id)}><item.icon size={16} />{item.label}{page === item.id && <span className="nav-current" />}</button>)}</>}</nav><div className="sidebar-bottom"><span className="status-dot" /><span>本地服务已连接</span><IconButton title="全局设置" active={page === 'settings'} onClick={() => setPage('settings')}><Settings size={14} /></IconButton><IconButton title="刷新数据" onClick={() => action(reload)}><RefreshCw size={14} /></IconButton></div></aside><main className="workspace"><header className="workspace-header"><div><span>{pages.find((p) => p.id === page)?.label}</span>{data.activeRoleId && <><span className="breadcrumb">/</span><span>{data.settings.persona.characterName}</span></>}</div><div className="runtime-status"><span className={'status-dot ' + (status === 'thinking' ? 'amber' : '')} />{statusNames[status]}<span className="header-divider" /><span>{window.desktop ? '桌面端' : '浏览器预览'}</span></div></header><div className={'page-content ' + (page === 'companion' && data.activeRoleId ? 'companion-content' : '')} key={page + data.activeRoleId}>{content()}</div><footer className="workspace-footer"><span>{currentAppearance?.name || '未配置形象'} · {modeNames[companion.mode]}模式</span><span>{screenState(preferences, companion.screen, data.modes.find((m) => m.id === companion.mode), !!captureError).reason || companion.screen.sourceName || '屏幕感知已就绪'}<span className="footer-divider">·</span>原始截图不保存</span></footer></main>{clearing && <Modal title="清空当前对话？" onClose={() => { if (!clearBusy) setClearing(false); }}><div className="modal-body"><p>将永久删除「{data.settings.persona.characterName}」的聊天记录，无法撤销。角色设定、长期记忆及其他角色不受影响。</p><div className="modal-footer"><button className="secondary" disabled={clearBusy} onClick={() => setClearing(false)}>取消</button><button className="primary danger" disabled={clearBusy || busy} onClick={() => action(async () => { const roleId = data.activeRoleId; setClearBusy(true); try { stopAudio(); await api('/api/chat/history', 'DELETE'); setData((old) => old?.activeRoleId === roleId ? { ...old, messages: [] } : old); if (dataRef.current?.activeRoleId === roleId) setScreenPreviews({}); setClearing(false); } finally { setClearBusy(false); } }, '当前角色对话已清空')}><Trash2 size={16} />确认清空</button></div></div></Modal>}{toast && <div className={'toast ' + (toast.error ? 'error' : '')} role="status">{toast.error ? <CircleHelp size={17} /> : <Check size={17} />}<span>{toast.text}</span><IconButton title="关闭通知" onClick={() => setToast(null)}><X size={15} /></IconButton></div>}</div>;
+  return <div className="app-shell"><aside className="sidebar"><div className="brand"><img className="brand-mark" src="/brand/logo.png" alt={t("兆次元 Logo")} /><div><strong>兆次元</strong><small>{t("AI 伴侣") + ' '}<span>1.0</span></small></div></div><nav>{pages.filter((item) => ['companion', 'roles'].includes(item.id)).map((item) => <button key={item.id} className={page === item.id ? 'selected' : ''} title={t(item.label)} onClick={() => setPage(item.id)}><item.icon size={17} />{t(item.label)}</button>)}{data.activeRoleId && <><div className="nav-role">{data.roles.find((role) => role.id === data.activeRoleId)?.previewUrl ? <img className="nav-role-avatar" src={data.roles.find((role) => role.id === data.activeRoleId)!.previewUrl!} alt="" /> : <UserRound size={17} />}<select aria-label={t("当前角色")} value={data.activeRoleId} onChange={(e) => action(() => selectRole(e.target.value, 'persona'))}>{data.roles.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}</select></div>{pages.filter((item) => !['companion', 'roles', 'profiles', 'settings'].includes(item.id)).map((item) => <button key={item.id} title={t(item.label)} className={((page === item.id || (page === 'profiles' && item.id === 'configuration')) ? 'selected' : '') + ' nav-owned'} onClick={() => setPage(item.id)}><item.icon size={16} />{t(item.label)}{page === item.id && <span className="nav-current" />}</button>)}</>}</nav><div className="sidebar-bottom"><span className="status-dot" /><span>{t("本地服务已连接")}</span><IconButton title={t("全局设置")} active={page === 'settings'} onClick={() => setPage('settings')}><Settings size={14} /></IconButton><IconButton title={t("刷新数据")} onClick={() => action(reload)}><RefreshCw size={14} /></IconButton></div></aside><main className="workspace"><header className="workspace-header"><div><span>{t(pages.find((p) => p.id === page)?.label || '')}</span>{data.activeRoleId && <><span className="breadcrumb">/</span><span>{data.settings.persona.characterName}</span></>}</div><div className="runtime-status"><span className={'status-dot ' + (status === 'thinking' ? 'amber' : '')} />{t(statusNames[status])}<span className="header-divider" /><span>{window.desktop ? t("桌面端") : t("浏览器预览")}</span></div></header><div className={'page-content ' + (page === 'companion' && data.activeRoleId ? 'companion-content' : '')} key={page + data.activeRoleId}>{content()}</div><footer className="workspace-footer"><span>{currentAppearance?.name || t("未配置形象")} · {modeNames[companion.mode]}{t("模式")}</span><span>{t(screenState(preferences, companion.screen, data.modes.find((m) => m.id === companion.mode), !!captureError).reason) || companion.screen.sourceName || t("屏幕感知已就绪")}<span className="footer-divider">·</span>{t("原始截图不保存")}</span></footer></main>{clearing && <Modal title={t("清空当前对话？")} onClose={() => { if (!clearBusy) setClearing(false); }}><div className="modal-body"><p>{t("将永久删除「")}{data.settings.persona.characterName}{t("」的聊天记录，无法撤销。角色设定、长期记忆及其他角色不受影响。")}</p><div className="modal-footer"><button className="secondary" disabled={clearBusy} onClick={() => setClearing(false)}>{t("取消")}</button><button className="primary danger" disabled={clearBusy || busy} onClick={() => action(async () => { const roleId = data.activeRoleId; setClearBusy(true); try { stopAudio(); await api('/api/chat/history', 'DELETE'); setData((old) => old?.activeRoleId === roleId ? { ...old, messages: [] } : old); if (dataRef.current?.activeRoleId === roleId) setScreenPreviews({}); setClearing(false); } finally { setClearBusy(false); } }, t("当前角色对话已清空"))}><Trash2 size={16} />{t("确认清空")}</button></div></div></Modal>}{toast && <div className={'toast ' + (toast.error ? 'error' : '')} role="status">{toast.error ? <CircleHelp size={17} /> : <Check size={17} />}<span>{t(toast.text)}</span><IconButton title={t("关闭通知")} onClick={() => setToast(null)}><X size={15} /></IconButton></div>}</div>;
 }
 
 function RowControl({ label, children }: { label: string; children: React.ReactNode }) { return <div className="presence-control"><span>{label}</span>{children}</div>; }

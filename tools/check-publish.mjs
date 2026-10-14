@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { approvedBuiltinRuntime, builtinMetadata, builtinPrefix } from './builtin-characters.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const gitBinary = process.platform === 'darwin' && fs.existsSync('/usr/bin/git') ? '/usr/bin/git' : 'git';
@@ -9,10 +10,11 @@ const approvedDocs = new Set([
   'docs/DEVELOPMENT.md', 'docs/PRIVACY.md', 'docs/LICENSING.md', 'docs/ROADMAP.md',
   'docs/release/MAC-INSTALL.md', 'docs/brand/zhaociyuan/兆次元-logo-选定版.png',
   'docs/release/RELEASE-v1.0.0-beta.1.md',
+  'docs/release/RELEASE-v1.0.0-beta.2.md', 'docs/2026-10-13-多语言.md',
   'docs/screenshots/control-panel.png', 'docs/screenshots/desktop-companion.png',
 ]);
 const binaryExtensions = new Set(['.png', '.jpg', '.jpeg', '.webp', '.ico', '.icns']);
-const publicationCopyPattern = /私有(?:测试|预发布|开发预览)|仓库[^\n]{0,80}(?:Private|私有|读取权限)|Star[^\n]{0,40}(?:权限|下载)|本机文件保留|本轮已验证|重新打包纳入/g;
+const publicationCopyPattern = /私有(?:测试|预发布|开发预览)|仓库[^\n]{0,80}(?:Private|私有|读取权限)|Star[^\n]{0,40}(?:权限|下载)|本机文件保留|本轮已验证|重新打包纳入|runtime\/qa\//g;
 const credentialPatterns = [
   ['provider-key', /\bsk-[A-Za-z0-9_-]{20,}/g],
   ['github-token', /\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{40,})/g],
@@ -25,16 +27,19 @@ const credentialPatterns = [
 export function inspectCandidate(file, content, mode = '100644') {
   const findings = [];
   const add = (rule, line = 1) => findings.push({ file, line, rule });
+  const builtinRuntime = approvedBuiltinRuntime(file, content, root);
+  const builtinFile = builtinRuntime || file.startsWith(builtinPrefix) && builtinMetadata.has(file.slice(builtinPrefix.length));
   if (mode === '120000') add('symlink-needs-review');
   if (/^(?:archive|releases|node_modules|\.venv|\.codex|\.aws|\.agents)\//.test(file)
       || /^build\/(?:staging|pyinstaller)\//.test(file)
       || /(?:^|\/)(?:__pycache__|\.pytest_cache|dist)\//.test(file)
-      || (/^(?:runtime|resources)\//.test(file) && !file.endsWith('/.gitkeep'))
+      || (/^(?:runtime|resources)\//.test(file) && !file.endsWith('/.gitkeep') && !builtinFile)
       || (file.startsWith('docs/') && !approvedDocs.has(file))) add('private-or-generated-path');
   if (/(?:^|\/)(?:\.env(?:\..*)?|secrets\.json)$/.test(file) && !file.endsWith('.env.example')) add('secret-file');
-  if (/\.(?:db(?:-.*)?|sqlite3?|pem|key|p12|pfx|dmg|onnx|bin|moc3|zip|rar|wav|mp3|webm|mobileprovision)$/i.test(file)) add('private-binary-or-data');
+  if (/\.(?:db(?:-.*)?|sqlite3?|pem|key|p12|pfx|dmg|onnx|bin|moc3|zip|rar|wav|mp3|webm|mobileprovision)$/i.test(file) && !builtinRuntime) add('private-binary-or-data');
   if (content.length > 10 * 1024 * 1024) add('large-file-needs-review');
   if (binaryExtensions.has(path.extname(file).toLowerCase())) return findings;
+  if (builtinRuntime && file.endsWith('.moc3')) return findings;
   if (content.includes(0)) {
     add('unexpected-binary');
     return findings;

@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 
-from server.app import api, characters, companion, database, knowledge, llm, secrets
+from server.app import api, builtin_characters, characters, companion, database, knowledge, llm, secrets
 from server.app.models import CompanionReply
 
 
@@ -24,6 +24,7 @@ def empty_client(tmp_path, monkeypatch):
     monkeypatch.setattr(api, 'RUNTIME_DIR', runtime)
     monkeypatch.setattr(knowledge, 'KNOWLEDGE_DIR', tmp_path / 'knowledge')
     monkeypatch.setattr(companion, 'seed_legacy_assets', lambda: None)
+    monkeypatch.setattr(builtin_characters, 'BUNDLED_DIR', tmp_path / 'no-bundled-characters')
     monkeypatch.setattr(api, 'API_TOKEN', '')
     stored = {}
     monkeypatch.setattr(secrets, 'get_secret', lambda key: stored.get(key, ''))

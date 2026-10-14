@@ -7,6 +7,8 @@ import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { createRequire } from 'node:module';
 import { chromium } from 'playwright';
+import { translate } from '../../apps/desktop/locale.mjs';
+import { bundledCharacterFiles } from '../../tools/builtin-characters.mjs';
 
 const require = createRequire(import.meta.url);
 const { freePort, serviceOptions, launchService } = require('../../apps/desktop/service.cjs');
@@ -17,7 +19,7 @@ const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'zhaociyuan-install-'));
 const mountpoint = path.join(temporary, 'volume');
 fs.mkdirSync(mountpoint);
 const version = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version;
-const dmg = path.join(root, `releases/Zhaociyuan-${version}-mac-arm64.dmg`);
+const dmg = process.env.NICE_PEOPLE_DMG || path.join(root, `releases/Zhaociyuan-${version}-mac-arm64.dmg`);
 const result = { passed: false, checks: [], errors: [], dmg, temporary };
 let mounted = false, api, electron, browser;
 function run(command, args) {
@@ -61,9 +63,15 @@ try {
     assert(fs.existsSync(path.join(resources, 'licenses', notice)), notice);
   }
   assert(!fs.existsSync(path.join(resources, 'characters')));
+  const builtinFiles = bundledCharacterFiles(root);
+  for (const relative of builtinFiles) assert.equal(
+    crypto.createHash('sha256').update(fs.readFileSync(path.join(resources, 'builtin-characters', relative))).digest('hex'),
+    crypto.createHash('sha256').update(fs.readFileSync(path.join(root, 'resources/builtin-characters', relative))).digest('hex'), relative);
   const packagedFiles = allFiles(resources);
   assert(!packagedFiles.some((file) => /companion\.db|\.env$|test_wavs|modelscope|model\.onnx$/.test(file) && file.includes('sense-voice')));
-  assert(!packagedFiles.some((file) => /(?:^|\/)(?:secrets\.json|\.env(?:\..*)?)$|\.(?:db(?:-.*)?|sqlite3?)$|\.model3\.json$|\.moc3$/.test(file)));
+  assert(!packagedFiles.some((file) => /(?:^|\/)(?:secrets\.json|\.env(?:\..*)?)$|\.(?:db(?:-.*)?|sqlite3?)$/.test(file)));
+  assert(!packagedFiles.some((file) => /\.model3\.json$|\.moc3$/.test(file) &&
+    !builtinFiles.includes(path.relative(path.join(resources, 'builtin-characters'), file))));
   result.checks.push('beta version, icon, current license notices and no personal database, credentials or characters');
   const pythonInventory = JSON.parse(fs.readFileSync(path.join(resources, 'licenses/python/inventory.json'), 'utf8'));
   for (const [name, expected] of Object.entries({ anyio: '4.15.1', pillow: '12.3.0', pypdf: '6.20.0',
@@ -75,8 +83,9 @@ try {
   const runtimeVersion = JSON.parse(fs.readFileSync(path.join(resources, 'licenses/python/CPython/runtime.json'), 'utf8')).version.split('.').map(Number);
   assert.equal(runtimeVersion[0], 3); assert.equal(runtimeVersion[1], 12); assert(runtimeVersion[2] >= 15);
   result.checks.push('security-updated Python 3.12 service and six dependency versions');
-  const cleanEnv = { ...process.env, PATH: '/usr/bin:/bin:/usr/sbin:/sbin' };
+  const cleanEnv = { ...process.env, PATH: '/usr/bin:/bin:/usr/sbin:/sbin', PYTHON_KEYRING_BACKEND: 'keyring.backends.null.Keyring' };
   for (const name of Object.keys(cleanEnv)) if (name.startsWith('NICE_PEOPLE_') || name.startsWith('PYTHON')) delete cleanEnv[name];
+  cleanEnv.PYTHON_KEYRING_BACKEND = 'keyring.backends.null.Keyring';
   const token = crypto.randomBytes(32).toString('hex');
   const port = await freePort();
   const base = `http://127.0.0.1:${port}`;
@@ -89,10 +98,14 @@ try {
     const value = await response.json(); assert(response.ok, JSON.stringify(value)); return value;
   }
   assert.equal((await fetch(base + '/api/desktop')).status, 401);
-  const state = await request('/api/bootstrap'); assert.equal(state.roles.length, 0); assert.equal(state.messages.length, 0);
+  const state = await request('/api/bootstrap'); assert.equal(state.roles.length, 2); assert.equal(state.messages.length, 0);
+  assert.deepEqual(state.roles.map((role) => role.name), ['虹色 Mao', '桃濑日和 Hiyori']);
+  assert.equal(state.settings.persona.characterName, '虹色 Mao');
+  assert.equal(state.appearances.length, 3);
   const health = await request('/api/health'); assert(health.asr_installed && health.tts_installed); assert.equal(health.modelConfigured, false);
   result.checks.push('standalone service, authorization, fresh profile and bundled voice models');
-  await request('/api/roles', 'POST', { name: '安装验收角色' });
+  const testingRole = await request('/api/roles', 'POST', { name: '安装验收角色' });
+  await request('/api/roles/' + testingRole.id + '/activate', 'POST');
   const portrait = new FormData();
   portrait.append('file', new Blob([fs.readFileSync(path.join(resources, 'renderer/brand/logo.png'))], { type: 'image/png' }), 'test.png');
   const imported = await fetch(base + '/api/characters/import', { method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: portrait });
@@ -130,15 +143,36 @@ try {
   browser = await chromium.connectOverCDP(`http://127.0.0.1:${debugPort}`);
   const page = await waitFor(() => browser.contexts()[0]?.pages().find((page) => /^http:\/\/127\.0\.0\.1:\d+\/$/.test(page.url())));
   const pageErrors = []; page.on('pageerror', (error) => pageErrors.push(error.message));
-  await page.waitForFunction(() => window.desktop && document.body.innerText.includes('角色'), { timeout: 45000 });
+  await page.waitForFunction(() => window.desktop && document.querySelector('.avatar-viewport canvas') && !document.querySelector('.avatar-loading'), { timeout: 45000 });
   const bootstrap = await page.evaluate(() => window.desktop.api('/api/bootstrap'));
-  assert.equal(bootstrap.roles.length, 0); assert(bootstrap.health.tts_installed && bootstrap.health.asr_installed);
+  assert.equal(bootstrap.roles.length, 2); assert(bootstrap.health.tts_installed && bootstrap.health.asr_installed);
+  assert.equal(bootstrap.settings.persona.characterName, '虹色 Mao');
+  const canvasPixels = await page.locator('.avatar-viewport canvas').first().evaluate((canvas) => new Promise((resolve) => requestAnimationFrame(() => {
+    const gl = canvas.getContext('webgl2'), bytes = new Uint8Array(gl.drawingBufferWidth * gl.drawingBufferHeight * 4);
+    gl.readPixels(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+    let visible = 0; for (let i = 3; i < bytes.length; i += 4) if (bytes[i] > 16) visible++;
+    resolve(visible);
+  })));
+  assert(canvasPixels > 1000, 'Bundled default model is blank');
+  result.checks.push('installed first launch renders bundled Mao without importing a model');
   assert.equal(bootstrap.desktop.pushToTalkKey, 'ShiftLeft+ShiftRight');
   const permission = await page.evaluate(() => window.desktop.permission()); result.permission = permission;
   const windows = browser.contexts()[0].pages(); assert(windows.some((page) => page.url().includes('window=companion')));
   await page.evaluate(() => window.desktop.openChat());
   await waitFor(() => browser.contexts()[0].pages().some((page) => page.url().includes('window=chat')));
   await page.screenshot({ path: path.join(reportDir, 'installed-onboarding.png') });
+  const initialLanguage = bootstrap.desktop.language;
+  assert(['zh', 'en', 'ja'].includes(initialLanguage));
+  assert.equal(await page.evaluate(() => window.desktop.initialLanguage), initialLanguage);
+  const chatPage = browser.contexts()[0].pages().find((page) => page.url().includes('window=chat'));
+  await chatPage.getByRole('textbox', { name: translate('聊天输入', initialLanguage) }).fill('安装版未发送草稿');
+  await page.getByRole('button', { name: translate('全局设置', initialLanguage), exact: true }).click();
+  await page.locator('.general-page select').first().selectOption('ja');
+  await page.getByRole('combobox', { name: '表示言語' }).waitFor();
+  assert.equal((await page.evaluate(() => window.desktop.api('/api/desktop'))).language, 'ja');
+  assert.equal(await chatPage.getByRole('textbox', { name: 'チャット入力' }).inputValue(), '安装版未发送草稿');
+  await page.screenshot({ path: path.join(reportDir, 'installed-settings-ja.png') });
+  result.checks.push('packaged persisted system language and live Japanese switch without losing chat draft');
   assert.deepEqual(pageErrors, []); result.checks.push('actual installed Electron: onboarding, companion and floating chat, working IPC');
   const appBase = new URL(page.url()).origin;
   await page.evaluate(() => window.desktop.quit()).catch((error) => {
@@ -152,6 +186,7 @@ try {
   result.passed = true;
 } catch (error) { result.errors.push(error.stack); process.exitCode = 1; }
 finally {
+  if (!result.passed && browser) result.windowUrls = browser.contexts().flatMap((context) => context.pages().map((page) => page.url()));
   await browser?.close().catch(() => {});
   await stop(electron); await stop(api);
   if (mounted) { try { run('hdiutil', ['detach', mountpoint]); } catch (error) { result.errors.push(error.message); result.passed = false; process.exitCode = 1; } }

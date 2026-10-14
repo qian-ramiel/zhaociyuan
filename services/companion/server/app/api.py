@@ -23,7 +23,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ValidationError
 from starlette.concurrency import run_in_threadpool
 
-from server.app import characters, companion, database, knowledge, llm, roles, secrets, speech
+from server.app import builtin_characters, characters, companion, database, knowledge, llm, roles, secrets, speech
 from server.app.config import API_TOKEN, CHARACTERS_DIR, KNOWLEDGE_DIR, ROOT, RUNTIME_DIR
 from server.app.defaults import DEFAULT_MOTIONS, DEFAULT_PERSONA, DEFAULT_PROVIDERS
 from server.app.streaming import event
@@ -53,6 +53,7 @@ async def lifespan(_: FastAPI):
     roles.migrate_modes()
     companion.seed_legacy_assets()
     roles.migrate_secrets()
+    builtin_characters.seed_builtin_characters()
     yield
     for task in list(tasks.values()):
         task.cancel()
@@ -114,6 +115,8 @@ def desktop_settings():
 
 @app.put('/api/desktop')
 def save_desktop(value: DesktopSettings):
+    if value.language is None:
+        value.language = database.get_setting('desktop', {}).get('language')
     database.set_setting('desktop', value.model_dump())
     return value
 

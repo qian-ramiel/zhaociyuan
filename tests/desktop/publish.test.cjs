@@ -30,4 +30,6 @@ test('public documentation rejects internal rollout instructions, not privacy gu
   assert.ok(draft.some(item => item.rule === 'internal-publication-copy'));
   assert.deepEqual(inspectCandidate('docs/PRIVACY.md', Buffer.from('不要公开私人聊天；private vulnerability reporting 用于安全报告。')), []);
   assert.deepEqual(inspectCandidate('NOTICE.md', Buffer.from('An SDK license is not an application release authorization.')), []);
+  assert.ok(inspectCandidate('docs/2026-10-13-多语言.md', Buffer.from('报告 runtime/qa/local-run/result.json')).some(item => item.rule === 'internal-publication-copy'));
+  assert.deepEqual(inspectCandidate('docs/2026-10-13-多语言.md', Buffer.from('支持中英日界面切换。')), []);
 });

@@ -45,6 +45,7 @@ export interface DesktopPreferences { visible: boolean; clickThrough: boolean; a
 export interface SystemPermissions { screen: string; microphone: string; accessibility: string; pushToTalk: 'running' | 'permission-required' | 'hearing-disabled' | 'disabled' | 'unavailable' }
 export interface DesktopCommand { type: 'send' | 'draft' | 'mode' | 'appearance' | 'settings' | 'role' | 'error'; value: string }
 export interface Desktop {
+  initialLanguage?: 'zh' | 'en' | 'ja';
   platform: string;
   api: <T = unknown>(path: string, options?: { method?: string; body?: unknown }) => Promise<T>;
   stream?: (id: string, path: string, body: unknown, callback: (event: StreamEvent) => void) => Promise<void>;
@@ -62,3 +63,4 @@ export interface Desktop {
 }
 export interface StreamEvent { type: string; delta?: string; result?: ChatResult; data?: string; mime?: string; url?: string; message?: string }
 declare global { interface Window { desktop?: Desktop } }
+export interface DesktopPreferences { language?: 'zh' | 'en' | 'ja' | null }

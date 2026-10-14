@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { useEffect, useRef, useState } from 'react';
 import { AlertCircle, LoaderCircle, UserRound } from 'lucide-react';
 import type { Appearance, Binding, Emotion, Status } from '../types';
@@ -77,7 +78,7 @@ export function Avatar({ appearance, emotion = 'neutral', status = 'idle', motio
         await module.initializeLive2D(target, '/assets/characters/' + appearance.modelPath);
         if (active) setReady(true);
       } catch {
-        if (active) { setError('形象加载失败'); callback.current?.('形象加载失败，请检查资源包'); }
+        if (active) { setError(t("形象加载失败")); callback.current?.(t("形象加载失败，请检查资源包")); }
       }
     });
     return () => { active = false; import('../live2d/main').then((m) => m.disposeLive2D(target)); };
@@ -104,9 +105,9 @@ export function Avatar({ appearance, emotion = 'neutral', status = 'idle', motio
       if (binding?.expression) module.setLive2DExpression(binding.expression);
     });
   }, [ready, appearance, emotion, status, motions]);
-  if (!appearance) return <div className="avatar-empty"><UserRound size={44} /><span>未选择形象</span></div>;
+  if (!appearance) return <div className="avatar-empty"><UserRound size={44} /><span>{t("未选择形象")}</span></div>;
   return <div ref={viewport} className={`avatar-viewport ${appearance.framing}`} data-testid="avatar" data-appearance={appearance.id} onPointerMove={(e) => { if (gaze?.trigger !== 'click') look(e); }} onPointerDown={look} onPointerLeave={() => { void import('../live2d/main').then((m) => m.lookAtLive2D(0, 0, gaze?.head !== false)); }} style={{ '--avatar-scale': appearance.scale } as React.CSSProperties}>
-    {appearance.kind === 'static' ? <img className="portrait" src={'/assets/characters/' + appearance.modelPath} alt={appearance.name} onLoad={() => setReady(true)} onError={() => { setError('立绘加载失败'); callback.current?.('立绘加载失败'); }} /> : <canvas ref={canvas} aria-label={appearance.name + ' Live2D'} onPointerUp={look} />}
-    {!ready && <div className="avatar-loading">{error ? <AlertCircle size={20} /> : <LoaderCircle size={20} className="spin" />}<span>{error || '正在加载形象'}</span></div>}
+    {appearance.kind === 'static' ? <img className="portrait" src={'/assets/characters/' + appearance.modelPath} alt={appearance.name} onLoad={() => setReady(true)} onError={() => { setError(t("立绘加载失败")); callback.current?.(t("立绘加载失败")); }} /> : <canvas ref={canvas} aria-label={appearance.name + ' Live2D'} onPointerUp={look} />}
+    {!ready && <div className="avatar-loading">{error ? <AlertCircle size={20} /> : <LoaderCircle size={20} className="spin" />}<span>{error || t("正在加载形象")}</span></div>}
   </div>;
 }

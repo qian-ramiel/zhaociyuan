@@ -10,10 +10,13 @@
 | tools | 开发启动、依赖准备、打包与上传检查 |
 | build/packaging | 应用图标和 macOS 权限配置 |
 | docs | 当前开发、隐私、授权和安装说明 |
-| resources | 用户素材和下载权重，仅保留目录占位，不提交实际资源 |
+| resources/builtin-characters | 官方 Mao / Hiyori 示例角色、运行文件校验清单及独立授权 |
+| resources/characters、speech、knowledge | 用户素材和下载权重，仅保留目录占位，不提交实际资源 |
 | runtime | 本地数据和测试证据，仅保留目录占位 |
 
 运行数据、下载权重、测试截图和构建产物不进入源码提交。
+
+内置角色只从 `resources/builtin-characters/manifest.json` 的校验清单进入安装包，不复制用户角色目录。首次运行创建两个示例角色，默认使用 Mao；已有用户不切换当前角色、不改配置，删除的示例不会在重启后重新出现。全身、半身、mini 是同一模型的取景预设，不是额外绘制的 Q 版素材。需要恢复原始资源时，先阅读并同意随附的 Live2D 条款，再执行 `python3 tools/setup_characters.py`，脚本校验官方压缩包摘要并只提取运行资源。
 
 本地服务使用 Python 3.12.15 或更新的 3.12 补丁版。安装后执行 `npm run setup:api` 创建 `.venv`；也可使用 `python3.12 tools/setup_api.py`。已有旧版 Python 虚拟环境时，先正常退出开发服务，将旧 `.venv` 改名保留，再创建新环境；不要删除 `runtime/` 或用户应用数据。安装脚本不会覆盖不兼容的已有环境。
 

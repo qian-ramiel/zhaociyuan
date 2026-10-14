@@ -9,6 +9,7 @@ const { readEvents } = require('./stream.cjs');
 const { createPushToTalk } = require('./push-to-talk.cjs');
 const { validRegions, ignoresPointer } = require('./pointer-regions.cjs');
 const { freePort, serviceOptions, launchService } = require('./service.cjs');
+const { initialLanguage, languages, translate } = require('./locale.mjs');
 
 const ROOT = path.resolve(__dirname, '../..');
 const DEV_URL = process.env.NICE_PEOPLE_URL;
@@ -24,6 +25,7 @@ let traySignature = '';
 const streams = new Map();
 let pushToTalk, shortcutSignature = '';
 let pointerRegions = [], pointerCapturing = false, pointerIgnored, pointerTimer;
+const t = (source) => translate(source, overlayPreferences.language || 'en');
 
 function updatePointerPassthrough() {
   if (!companionWindow || companionWindow.isDestroyed()) return;
@@ -57,7 +59,7 @@ function configureVoiceShortcut() {
     pushToTalk = controller;
   } catch {
     shortcutSignature = '';
-    sendCommand({ type: 'error', value: '按住说话无法启动，请检查辅助功能或输入监控权限与快捷键冲突' });
+    sendCommand({ type: 'error', value: t("按住说话无法启动，请检查辅助功能或输入监控权限与快捷键冲突") });
   }
 }
 
@@ -75,13 +77,13 @@ app.on('second-instance', () => showConsole());
 
 function validateSender(event) {
   const sender = event.senderFrame?.url || '';
-  if (!sender.startsWith(UI_URL + '/') && sender !== UI_URL) throw new Error('无效窗口请求');
+  if (!sender.startsWith(UI_URL + '/') && sender !== UI_URL) throw new Error(t("无效窗口请求"));
 }
 
 async function callApi(route, options = {}) {
-  if (typeof route !== 'string' || !route.startsWith('/api/') || route.includes('..') || route.length > 500) throw new Error('无效 API 地址');
+  if (typeof route !== 'string' || !route.startsWith('/api/') || route.includes('..') || route.length > 500) throw new Error(t("无效 API 地址"));
   const method = options.method || 'GET';
-  if (!['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) throw new Error('无效请求方法');
+  if (!['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) throw new Error(t("无效请求方法"));
   const response = await fetch(API_URL + route, {
     method,
     headers: { ...requestHeaders(options.body), Authorization: 'Bearer ' + TOKEN },
@@ -105,15 +107,16 @@ async function startApi() {
   apiProcess = await launchService(config, { onLaunch: (child) => { apiProcess = child; }, log: (data) => {
     try { fs.appendFileSync(logPath, data); } catch {}
   } });
-  if (quitting) { apiProcess.kill(); throw new Error('启动已取消'); }
+  if (quitting) { apiProcess.kill(); throw new Error(t("启动已取消")); }
   apiProcess.once('exit', () => {
-    if (!quitting) { dialog.showErrorBox('兆次元 本地服务已停止', '请重新启动软件。排查信息保存在用户数据目录中的 startup.log。'); app.quit(); }
+    if (!quitting) { dialog.showErrorBox(t("兆次元 本地服务已停止"), t("请重新启动软件。排查信息保存在用户数据目录中的 startup.log。")); app.quit(); }
   });
 }
 
 function windowOptions(extra = {}) {
   return { show: false, backgroundColor: '#f5f7f8',
-    webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false }, ...extra };
+    webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false,
+      additionalArguments: ['--zhaociyuan-ui-language=' + (overlayPreferences.language || 'en')] }, ...extra };
 }
 
 function secureWindow(window) {
@@ -148,7 +151,7 @@ function showChat() {
     const area = screen.getDisplayMatching(bounds).workArea;
     chatWindow = new BrowserWindow(windowOptions({ width: 440, height: 620, minWidth: 360, minHeight: 480,
       x: Math.max(area.x, Math.min(bounds.x - 450, area.x + area.width - 440)), y: Math.max(area.y, Math.min(bounds.y, area.y + area.height - 620)),
-      title: '兆次元 · 聊天', titleBarStyle: 'hiddenInset', alwaysOnTop: true }));
+      title: t("兆次元 · 聊天"), titleBarStyle: 'hiddenInset', alwaysOnTop: true }));
     secureWindow(chatWindow);
     chatWindow.loadURL(UI_URL + '/?window=chat');
     chatWindow.webContents.on('did-finish-load', () => { if (lastState) chatWindow.webContents.send('state', lastState); });
@@ -170,7 +173,7 @@ function createWindows() {
   const initialSize = overlaySize('half', overlayPreferences.characterScale, overlayPreferences.bubbleHeight);
   initialSize.width = Math.min(initialSize.width, work.width); initialSize.height = Math.min(initialSize.height, work.height);
   companionWindow = new BrowserWindow(windowOptions({ ...initialSize, x: Math.max(work.x, work.x + work.width - initialSize.width - 30), y: Math.max(work.y, work.y + work.height - initialSize.height - 30),
-    transparent: true, backgroundColor: '#00000000', frame: false, resizable: false, hasShadow: false, skipTaskbar: true, alwaysOnTop: true, title: '兆次元 · 桌面角色' }));
+    transparent: true, backgroundColor: '#00000000', frame: false, resizable: false, hasShadow: false, skipTaskbar: true, alwaysOnTop: true, title: t("兆次元 · 桌面角色") }));
   secureWindow(companionWindow);
   companionWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   companionWindow.loadURL(UI_URL + '/?window=companion');
@@ -198,7 +201,7 @@ function createWindows() {
 ipcMain.handle('api', async (event, route, options) => { validateSender(event); return callApi(route, options); });
 ipcMain.handle('stream', async (event, id, route, body) => {
   validateSender(event);
-  if (!['/api/chat/stream', '/api/tts/stream'].includes(route) || typeof id !== 'string' || !/^[\w-]{1,80}$/.test(id) || streams.has(id) || streams.size >= 8) throw Error('无效流式请求');
+  if (!['/api/chat/stream', '/api/tts/stream'].includes(route) || typeof id !== 'string' || !/^[\w-]{1,80}$/.test(id) || streams.has(id) || streams.size >= 8) throw Error(t("无效流式请求"));
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 180000);
   streams.set(id, { controller, sender: event.sender });
@@ -216,13 +219,13 @@ ipcMain.on('lip-sync', (event, value) => {
 });
 ipcMain.handle('upload', async (event, route, bytes, name, type, fields = {}) => {
   validateSender(event);
-  if (!['/api/characters/import', '/api/roles/import', '/api/knowledge/import', '/api/asr/transcribe'].includes(route) || !ArrayBuffer.isView(bytes) || bytes.byteLength > 512 * 1024 * 1024) throw new Error('无效上传');
+  if (!['/api/characters/import', '/api/roles/import', '/api/knowledge/import', '/api/asr/transcribe'].includes(route) || !ArrayBuffer.isView(bytes) || bytes.byteLength > 512 * 1024 * 1024) throw new Error(t("无效上传"));
   const body = new FormData();
   body.append('file', new Blob([bytes], { type: String(type) }), String(name));
   for (const [key, value] of Object.entries(fields)) if (key === 'name') body.append(key, String(value));
   const response = await fetch(API_URL + route, { method: 'POST', headers: { Authorization: 'Bearer ' + TOKEN }, body, signal: AbortSignal.timeout(180000) });
   const result = await response.json();
-  if (!response.ok) throw new Error(apiError(result.detail, '上传失败'));
+  if (!response.ok) throw new Error(apiError(result.detail, t("上传失败")));
   return result;
 });
 ipcMain.handle('permission', (event) => {
@@ -250,43 +253,49 @@ ipcMain.handle('sources', async (event) => {
 });
 ipcMain.handle('capture', async (event) => {
   validateSender(event);
-  if (!overlayPreferences.visionEnabled) throw new Error('视觉开关已关闭');
+  if (!overlayPreferences.visionEnabled) throw new Error(t("视觉开关已关闭"));
   const { settings: { companion }, modes } = await callApi('/api/bootstrap');
-  if (!modes.find((mode) => mode.id === companion.mode)?.screenAllowed) throw new Error('当前模式不允许屏幕观察');
+  if (!modes.find((mode) => mode.id === companion.mode)?.screenAllowed) throw new Error(t("当前模式不允许屏幕观察"));
   const settings = companion.screen;
-  if (!settings.enabled || settings.paused) throw new Error('屏幕观察已关闭或暂停');
-  if (!safeSource(settings.sourceId)) throw new Error('请先选择观察窗口');
+  if (!settings.enabled || settings.paused) throw new Error(t("屏幕观察已关闭或暂停"));
+  if (!safeSource(settings.sourceId)) throw new Error(t("请先选择观察窗口"));
   const high = settings.quality !== 'standard';
   const sources = await desktopCapturer.getSources({ types: [settings.sourceId.startsWith('screen:') ? 'screen' : 'window'], thumbnailSize: high ? { width: 3200, height: 2000 } : { width: 1600, height: 1000 } });
   const selected = sources.find((source) => source.id === settings.sourceId);
-  if (!selected || selected.thumbnail.isEmpty()) throw new Error('目标窗口不可用，请重新选择');
+  if (!selected || selected.thumbnail.isEmpty()) throw new Error(t("目标窗口不可用，请重新选择"));
   const region = cropBounds(settings.region, selected.thumbnail.getSize());
-  if (!overlayPreferences.visionEnabled) throw new Error('视觉开关已关闭');
+  if (!overlayPreferences.visionEnabled) throw new Error(t("视觉开关已关闭"));
   const image = selected.thumbnail.crop(region);
   const imageData = 'data:image/' + (high ? 'png' : 'jpeg') + ';base64,' + (high ? image.toPNG() : image.toJPEG(82)).toString('base64');
-  if (imageData.length > 8_000_000) throw new Error('截图超过大小上限，请缩小捕获区域或切换为标准画质');
+  if (imageData.length > 8_000_000) throw new Error(t("截图超过大小上限，请缩小捕获区域或切换为标准画质"));
   return { imageData, sourceName: selected.name, capturedAt: new Date().toISOString() };
 });
 async function applyOverlayOptions(options = {}) {
   const operation = preferenceQueue.catch(() => {}).then(async () => {
   const next = { ...overlayPreferences };
   let changed = false;
+  if (options.language !== undefined) {
+    if (!languages.includes(options.language)) throw new Error(t('界面语言无效'));
+    if (next.language !== options.language) { next.language = options.language; changed = true; }
+  }
   for (const key of ['visible', 'clickThrough', 'alwaysOnTop', 'showGrip', 'gazeEnabled', 'visionEnabled', 'hearingEnabled', 'speechEnabled', 'pushToTalk', 'showBubble']) if (typeof options[key] === 'boolean' && next[key] !== options[key]) { next[key] = options[key]; changed = true; }
   if (options.pushToTalkKey !== undefined) {
-    if (!['CommandOrControl+Shift+Space', 'Control+Alt+Space', 'F8', 'ShiftLeft+ShiftRight'].includes(options.pushToTalkKey)) throw Error('快捷键无效');
+    if (!['CommandOrControl+Shift+Space', 'Control+Alt+Space', 'F8', 'ShiftLeft+ShiftRight'].includes(options.pushToTalkKey)) throw Error(t("快捷键无效"));
     if (next.pushToTalkKey !== options.pushToTalkKey) { next.pushToTalkKey = options.pushToTalkKey; changed = true; }
   }
   if (['hover', 'always'].includes(options.menu) && options.menu !== next.menu) { next.menu = options.menu; changed = true; }
   for (const [key, min, max, integer] of [['characterScale', .65, 1.6, false], ['bubbleWidth', 60, 100, true], ['bubbleHeight', 56, 280, true], ['bubbleFontSize', 11, 20, true], ['bubbleAutoHide', 0, 120, true]]) {
     if (options[key] === undefined) continue;
-    if (!Number.isFinite(options[key]) || options[key] < min || options[key] > max || (integer && !Number.isInteger(options[key]))) throw new Error('桌面显示设置数值无效');
+    if (!Number.isFinite(options[key]) || options[key] < min || options[key] > max || (integer && !Number.isInteger(options[key]))) throw new Error(t("桌面显示设置数值无效"));
     if (next[key] !== options[key]) { next[key] = options[key]; changed = true; }
   }
-  if (options.bubbleHeightPreview !== undefined && options.bubbleHeightPreview !== null && (!Number.isInteger(options.bubbleHeightPreview) || options.bubbleHeightPreview < 56 || options.bubbleHeightPreview > 280)) throw new Error('桌面显示设置数值无效');
+  if (options.bubbleHeightPreview !== undefined && options.bubbleHeightPreview !== null && (!Number.isInteger(options.bubbleHeightPreview) || options.bubbleHeightPreview < 56 || options.bubbleHeightPreview > 280)) throw new Error(t("桌面显示设置数值无效"));
   if (changed) {
     await callApi('/api/desktop', { method: 'PUT', body: next });
     Object.assign(overlayPreferences, next);
     configureVoiceShortcut();
+    chatWindow?.setTitle?.(t('兆次元 · 聊天'));
+    companionWindow?.setTitle?.(t('兆次元 · 桌面角色'));
   }
   const framing = ['full', 'half', 'mini'].includes(options.framing) ? options.framing : lastState?.appearance?.framing || 'half';
   if (options.bubbleHeightPreview !== undefined) bubbleHeightPreview = options.bubbleHeightPreview;
@@ -336,6 +345,7 @@ ipcMain.on('command', (event, command) => {
 });
 
 app.whenReady().then(async () => {
+  overlayPreferences.language = initialLanguage(undefined, app.getPreferredSystemLanguages?.()[0] || app.getLocale?.());
   session.defaultSession.setPermissionRequestHandler(async (contents, permission, callback) => {
     if (!overlayPreferences.hearingEnabled || !contents.getURL().startsWith(UI_URL) || permission !== 'media') return callback(false);
     if (process.platform === 'darwin') callback(await systemPreferences.askForMediaAccess('microphone'));
@@ -343,10 +353,13 @@ app.whenReady().then(async () => {
   });
   try {
     await startApi();
-    Object.assign(overlayPreferences, await callApi('/api/desktop'));
+    const desktop = await callApi('/api/desktop');
+    Object.assign(overlayPreferences, desktop);
+    overlayPreferences.language = initialLanguage(desktop.language, app.getPreferredSystemLanguages?.()[0] || app.getLocale?.());
+    if (desktop.language !== overlayPreferences.language) await callApi('/api/desktop', { method: 'PUT', body: overlayPreferences });
     createWindows();
     companionWindow.webContents.on('did-finish-load', () => { if (lastState) companionWindow.webContents.send('state', lastState); });
-  } catch (error) { dialog.showErrorBox('兆次元 启动失败', error.message); quitting = true; app.quit(); }
+  } catch (error) { dialog.showErrorBox(t("兆次元 启动失败"), t(error.message)); quitting = true; app.quit(); }
 });
 app.on('activate', showConsole);
 app.on('window-all-closed', () => { if (quitting) app.quit(); });

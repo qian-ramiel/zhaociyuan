@@ -27,7 +27,7 @@ function mainFixture(options = {}) {
     getBounds() { return this.bounds; } setBounds(value) { this.bounds = value; }
   }
   const electron = {
-    app: { isPackaged: true, setName: (name) => names.push(name), getPath: (key) => '/fixture/' + key, setPath: (key, value) => { paths[key] = value; }, requestSingleInstanceLock: () => true, on() {}, whenReady: () => ({ then: (cb) => { ready = cb; } }), quit() {} },
+    app: { isPackaged: true, getPreferredSystemLanguages: () => [options.systemLanguage || 'zh-CN'], setName: (name) => names.push(name), getPath: (key) => '/fixture/' + key, setPath: (key, value) => { paths[key] = value; }, requestSingleInstanceLock: () => true, on() {}, whenReady: () => ({ then: (cb) => { ready = cb; } }), quit() {} },
     BrowserWindow: Window,
     ipcMain: { handle: (key, cb) => { handles[key] = cb; }, on: (key, cb) => { events[key] = cb; } },
     nativeImage: { createFromPath: (filename) => {
@@ -73,6 +73,23 @@ test('brand changes preserve packaged userData and native logo reference', async
   assert.equal(f.tray().icon.width, 22);
   assert.deepEqual(f.tray().icon.representations.map((value) => [value.scaleFactor, value.dataURL]), [[2, 'fixture:44x44']]);
   assert.deepEqual(fs.readFileSync('apps/desktop/renderer/public/brand/logo.png'), fs.readFileSync('docs/brand/zhaociyuan/兆次元-logo-选定版.png'));
+});
+
+test('first-install language is saved, explicit preference survives system changes and updates every window', async () => {
+  for (const [systemLanguage, expected] of [['zh-TW', 'zh'], ['en-GB', 'en'], ['ja-JP', 'ja'], ['fr-FR', 'en']]) {
+    const f = mainFixture({ systemLanguage }); await f.ready(); assert.equal(f.prefs.language, expected);
+    for (const window of f.windows) assert.deepEqual(Array.from(window.options.webPreferences.additionalArguments), ['--zhaociyuan-ui-language=' + expected]);
+  }
+  const f = mainFixture({ systemLanguage: 'ja-JP', preferences: { language: 'en' } }); await f.ready();
+  assert.equal(f.tray().menu[0].label, 'Control Panel');
+  const event = { senderFrame: { url: 'http://127.0.0.1:8791/' }, sender: f.windows[0].webContents };
+  f.events.state(event, { persona: { characterName: '原始名字' } });
+  await f.handles.overlay(event, { language: 'ja' });
+  assert.equal(f.prefs.language, 'ja'); assert.equal(f.tray().menu[0].label, 'コントロールパネル');
+  for (const window of f.windows) assert.equal(window.sent.filter(([channel]) => channel === 'state').at(-1)[1].desktopPreferences.language, 'ja');
+  await assert.rejects(f.handles.overlay(event, { language: 'fr' })); assert.equal(f.prefs.language, 'ja');
+  f.fail(true); await assert.rejects(f.handles.overlay(event, { language: 'zh' })); assert.equal(f.prefs.language, 'ja');
+  assert.equal(f.tray().menu[0].label, 'コントロールパネル');
 });
 
 test('empty native space ignores clicks; avatar, controls and captured resize remain interactive', async () => {

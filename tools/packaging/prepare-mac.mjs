@@ -3,6 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { stageBuiltinCharacters } from '../builtin-characters.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 process.chdir(root);
@@ -39,6 +40,10 @@ copy('LICENSE', path.join(licenses, 'PROJECT-LICENSE'));
 copy('LICENSES/Apache-2.0.txt', path.join(licenses, 'Apache-2.0.txt'));
 copy('NOTICE.md', path.join(licenses, 'PROJECT-NOTICE.md'));
 copy('LICENSE-Live2D.md', path.join(licenses, 'LICENSE-Live2D.md'));
+stageBuiltinCharacters(root, path.join(stage, 'builtin-characters'));
+copy('resources/builtin-characters/NOTICE.md', path.join(licenses, 'builtin-characters/NOTICE.md'));
+copy('resources/builtin-characters/licenses', path.join(licenses, 'builtin-characters/licenses'));
+copy('resources/builtin-characters/manifest.json', path.join(licenses, 'builtin-characters/manifest.json'));
 copy('apps/desktop/THIRD_PARTY_NOTICES.md', path.join(licenses, 'THIRD_PARTY_NOTICES.md'));
 for (const name of ['NOTICE.md', 'SAMPLES_LICENSE.md', 'framework/LICENSE.md', 'core/LICENSE.md']) copy(path.join('apps/desktop/renderer/src/live2d', name), path.join(licenses, 'live2d', name));
 

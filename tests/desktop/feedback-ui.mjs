@@ -78,7 +78,7 @@ await new Promise((resolve) => reservation.listen(0, '127.0.0.1', resolve));
 const port = reservation.address().port;
 await new Promise((resolve) => reservation.close(resolve));
 const url = `http://127.0.0.1:${port}`;
-const server = spawn(path.join(root, '.venv/bin/python'), ['tests/desktop/feedback-server.py', String(port)], {
+const server = spawn(process.env.NICE_PEOPLE_PYTHON || path.join(root, '.venv/bin/python'), ['tests/desktop/feedback-server.py', String(port)], {
   cwd: root, env: { ...process.env, PYTHONPATH: 'services/companion', NICE_PEOPLE_HOME: path.join(qa, 'data'), NICE_PEOPLE_RESOURCES: path.join(qa, 'resources'), NICE_PEOPLE_TOKEN: '', NICE_PEOPLE_RENDERER: path.join(root, 'apps/desktop/renderer/dist') }, stdio: ['ignore', 'pipe', 'pipe'],
 });
 let output = '';
@@ -100,7 +100,7 @@ try {
   }
   await request('/api/health');
   browser = await chromium.launch({ headless: true, args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio'] });
-  page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  page = await browser.newPage({ locale: 'zh-CN', viewport: { width: 1440, height: 1000 } });
   page.on('pageerror', (error) => report.errors.push(error.message));
   report.cancelledRequests = [];
   page.on('response', async (response) => {
@@ -355,7 +355,7 @@ try {
   assert.deepEqual(Object.keys(persistedScreenshot.screen_context).sort(), ['capturedAt', 'sourceName']);
   await button('刷新数据').click(); await button('预览画面 合成测试窗口').click(); await button('关闭').click();
   const chatState = await page.evaluate(() => window.__state);
-  const chat = await browser.newPage({ viewport: { width: 360, height: 480 } });
+  const chat = await browser.newPage({ locale: 'zh-CN', viewport: { width: 360, height: 480 } });
   chat.on('pageerror', (error) => report.errors.push(error.message));
   await chat.addInitScript(() => {
     const listeners = new Set(); window.__push = (state) => { window.__state = state; listeners.forEach((callback) => callback(state)); };
@@ -586,7 +586,7 @@ try {
   await request('/api/appearances/' + half.id + '/activate', 'POST');
   await request('/api/desktop', 'PUT', { ...await request('/api/desktop'), hearingEnabled: true });
   const overlayState = await request('/api/bootstrap');
-  const overlay = await browser.newPage({ viewport: { width: 350, height: 546 } });
+  const overlay = await browser.newPage({ locale: 'zh-CN', viewport: { width: 350, height: 546 } });
   await overlay.exposeFunction('__resizeOverlay', async (height) => { await overlay.setViewportSize({ width: overlay.viewportSize().width, height }); });
   overlay.on('pageerror', (error) => report.errors.push(error.message));
   await overlay.addInitScript(() => {
@@ -1095,7 +1095,7 @@ try {
   assert.equal(await page.evaluate(() => window.__lipLevels.at(-1)), 0);
   report.checks.push('cancel during partial streamed response aborts model and TTS, removes provisional messages, resets measured mouth to zero and does not persist canceled history');
   const readableBubble = { ...bubbleState, message: JSON.stringify({ text: '# 提醒\n\n**先保存**，再按 `Esc`。\n\n```js\nconst x = 1;\n```', emotion: 'calm' }), busy: true };
-  const bubblePreview = await browser.newPage({ viewport: { width: 390, height: 640 } });
+  const bubblePreview = await browser.newPage({ locale: 'zh-CN', viewport: { width: 390, height: 640 } });
   bubblePreview.on('pageerror', (error) => report.errors.push(error.message));
   await bubblePreview.route('**/assets/characters/transparent-bounds.png', (route) => route.fulfill({ contentType: 'image/png', body: Buffer.from(paddedPng, 'base64') }));
   await bubblePreview.addInitScript(() => {

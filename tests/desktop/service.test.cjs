@@ -13,6 +13,7 @@ test('packaged runtime never invokes system Python; mutable data stays outside a
   assert.equal(config.options.env.NICE_PEOPLE_RESOURCES, '/Users/example/Library/Application Support/Nice People/resources');
   assert.match(config.options.env.NICE_PEOPLE_RENDERER, /Resources\/renderer$/);
   assert.match(config.options.env.NICE_PEOPLE_BUNDLED_SPEECH, /Resources\/speech$/);
+  assert.match(config.options.env.NICE_PEOPLE_BUNDLED_CHARACTERS, /Resources\/builtin-characters$/);
 });
 
 test('development runtime preserves optional local Python and data overrides', () => {

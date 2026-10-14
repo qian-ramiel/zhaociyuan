@@ -56,7 +56,8 @@
 .composer.in-call{border-color:#8ccbb7}
 .composer.in-call .recording-status{color:#168269}
 .composer.in-call .recording-status .status-dot{background:#168269}
-.icon-button[title="挂断通话"]{color:#bd4a52;background:#fff0ee}
+.icon-button[data-action="end-call"]{color:#bd4a52;background:#fff0ee}
+.sidebar nav>button{white-space:normal;overflow-wrap:anywhere}
 .overlay-popover{bottom:44px;width:min(210px,100%);max-height:calc(100dvh - 72px);z-index:3}
 .screen-attachment{width:100%;text-align:left;min-width:0}
 .screen-attachment:disabled{opacity:1;color:#92a3a8}

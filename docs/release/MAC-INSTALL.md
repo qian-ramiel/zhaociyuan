@@ -1,13 +1,13 @@
-# 兆次元 1.0.0-beta.1 macOS 测试版安装说明
+# 兆次元 1.0.0-beta.2 macOS 测试版安装说明
 
 ## 下载与适用设备
 
 本版面向 **Apple Silicon（M 系列）Mac**，构建最低系统版本为 macOS 13，尚未覆盖所有系统版本和设备。不支持 Intel、Windows 或 Linux。
 
-安装包暂未提供公开下载。本文说明安装步骤和源码构建方法；安装包发布后，可从 [Releases](https://github.com/qian-ramiel/zhaociyuan/releases) 下载以下附件：
+在 [Releases](https://github.com/qian-ramiel/zhaociyuan/releases) 查看可用版本与附件。本版附件名称如下：
 
-- `Zhaociyuan-1.0.0-beta.1-mac-arm64.dmg`：安装包。
-- `SHA256SUMS-beta.1.txt`：SHA-256 校验文件。
+- `Zhaociyuan-1.0.0-beta.2-mac-arm64.dmg`：安装包。
+- `SHA256SUMS.txt`：SHA-256 校验文件。
 - `MAC-INSTALL.md`：本说明。
 
 ## 安装
@@ -17,7 +17,7 @@
 3. 如需替换已有应用，请先从状态栏选择“退出”，仅关面板不等于退出。
 4. 从“应用程序”打开“兆次元”，完成首次角色和服务配置。
 
-无需安装 Node.js、Python 或系统 ffmpeg。安装包内置本地服务、SenseVoice int8 语音识别和 Kokoro 语音合成模型。角色形象、LLM 及第三方 TTS 由你自行配置；外部服务可能产生费用。
+无需安装 Node.js、Python 或系统 ffmpeg。安装包内置本地服务、SenseVoice int8 语音识别和 Kokoro 语音合成模型，以及 Mao、桃濑日和两个 Live2D 示例角色。LLM 及第三方 TTS 由你自行配置；外部服务可能产生费用。
 
 ## 首次打开的安全提示
 
@@ -30,19 +30,21 @@
 可选校验：把安装包和校验文件放在同一文件夹，再在该文件夹运行：
 
 ```bash
-shasum -a 256 -c SHA256SUMS-beta.1.txt
+shasum -a 256 -c SHA256SUMS.txt
 ```
 
 应显示安装包文件名后跟 `OK`。校验失败时不要安装，重新从 Release 下载并联系维护者。
 
 ## 首次配置
 
-1. 创建角色，导入你有使用权的 Live2D ZIP 或静态立绘。
+1. 首次打开默认显示 Mao，可在角色库切换桃濑日和；也可创建自己的角色并导入有使用权的 Live2D ZIP 或静态立绘。
 2. 在角色配置的“思维”中填写 LLM 地址、模型名称和自己的 Key，保存并测试。
 3. 在“声音”选择本地 Kokoro 或自己的 TTS 服务，再选择语音识别设置。
 4. 设置陪伴模式与提示词；需要看屏幕时另行打开视觉和模式授权。使用支持图片的对话模型，或配置独立视觉模型。
 
-本地语音可用不代表已连接大语言模型。聊天需要配置 LLM；基础的本地形象切换可独立使用。mini 需要自行绑定形象，不会自动生成 Q 版素材。
+在“全局设置 → 界面语言”中可切换中文、English、日本語。首次启动跟随受支持的系统语言，手动选择后保存；角色设定和聊天内容不会自动翻译。
+
+本地语音可用不代表已连接大语言模型。聊天需要配置 LLM；基础的本地形象切换可独立使用。内置角色的全身、半身、mini 使用同一模型的不同取景，不会自动生成 Q 版素材。升级保留现有角色和配置；删除示例角色后不会在重启时自动重建。
 
 ## 权限与数据
 
@@ -66,6 +68,8 @@ shasum -a 256 -c SHA256SUMS-beta.1.txt
 ## 版权与发行边界
 
 原创应用使用 Zhaociyuan License 1.0；Live2D、语音权重和其他第三方组件保留原授权。版权资料在 `.app/Contents/Resources/licenses`，Electron 框架许可另行保留。
+
+Mao、桃濑日和属于 Live2D 官方示例模型，不适用本项目的代码许可。日和角色设计不得修改；模型来源、原始 ReadMe、版权声明和完整素材条款随包保留。个人或小规模经营者的示例素材使用资格，不自动等于可扩展应用的 SDK 发行许可。重新发行或商业化前请检查 [SDK 发行条款](https://www.live2d.com/en/sdk/license/expandable/)。
 
 应用许可不授予第三方组件的额外权利。使用、修改或再分发 SDK、语音模型及原生库时，应遵循其各自条款；第三方文件随附的版权声明应保留。
 

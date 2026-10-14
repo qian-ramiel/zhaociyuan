@@ -1,7 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron');
+const initialLanguage = process.argv.find((argument) => argument.startsWith('--zhaociyuan-ui-language='))?.split('=')[1];
 
 contextBridge.exposeInMainWorld('desktop', {
   platform: process.platform,
+  initialLanguage: ['zh', 'en', 'ja'].includes(initialLanguage) ? initialLanguage : 'en',
   api: (path, options) => ipcRenderer.invoke('api', path, options),
   stream: (id, path, body, callback) => {
     const handler = (_, receivedId, value) => { if (receivedId === id) callback(value); };

@@ -40,8 +40,8 @@ export function apiError(detail, fallback = '请求失败') {
 export function providerNumberError(value) {
   for (const kind of ['llm', 'vision']) {
     const model = value[kind];
-    if (!Number.isFinite(model.temperature) || model.temperature < 0 || model.temperature > 2) return { field: 'Temperature', message: `${labels[kind]} Temperature 应为 0–2` };
-    if (!Number.isInteger(model.maxTokens) || model.maxTokens < 128 || model.maxTokens > 32768) return { field: '回复 Token 上限', message: `${labels[kind]} Token 上限应为 128–32768 的整数` };
+    if (!Number.isFinite(model.temperature) || model.temperature < 0 || model.temperature > 2) return { kind, field: 'Temperature', message: `${labels[kind]} Temperature 应为 0–2`, messageKey: '{{v0}} Temperature 应为 0–2', label: labels[kind] };
+    if (!Number.isInteger(model.maxTokens) || model.maxTokens < 128 || model.maxTokens > 32768) return { kind, field: '回复 Token 上限', message: `${labels[kind]} Token 上限应为 128–32768 的整数`, messageKey: '{{v0}} Token 上限应为 128–32768 的整数', label: labels[kind] };
   }
   return null;
 }

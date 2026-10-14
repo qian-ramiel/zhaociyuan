@@ -26,6 +26,7 @@ function serviceOptions({ packaged, resourcesPath, root, userData, env, token, a
       NICE_PEOPLE_HOME: env.NICE_PEOPLE_HOME || (packaged ? path.join(userData, 'companion') : path.join(root, 'runtime/v1')),
       NICE_PEOPLE_RESOURCES: env.NICE_PEOPLE_RESOURCES || (packaged ? path.join(userData, 'resources') : path.join(root, 'resources')),
       NICE_PEOPLE_BUNDLED_SPEECH: packaged ? path.join(resourcesPath, 'speech') : '',
+      NICE_PEOPLE_BUNDLED_CHARACTERS: env.NICE_PEOPLE_BUNDLED_CHARACTERS || (packaged ? path.join(resourcesPath, 'builtin-characters') : path.join(root, 'resources/builtin-characters')),
       NICE_PEOPLE_RENDERER: packaged ? path.join(resourcesPath, 'renderer') : path.join(root, 'apps/desktop/renderer/dist'),
     } },
   };
