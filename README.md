@@ -22,10 +22,11 @@
 
 ## 试用与安装
 
-- [版本与安装包](https://github.com/qian-ramiel/zhaociyuan/releases)
+- [下载 macOS Apple Silicon 安装包（1.0.0-beta.2）](https://github.com/qian-ramiel/zhaociyuan/releases/download/v1.0.0-beta.2/Zhaociyuan-1.0.0-beta.2-mac-arm64.dmg)
+- [更新说明与 SHA-256 校验文件](https://github.com/qian-ramiel/zhaociyuan/releases/tag/v1.0.0-beta.2)
 - [安装、首次配置与源码构建说明](docs/release/MAC-INSTALL.md)
 
-macOS 用户可在版本页查看可用安装包，或按照下方“从源码启动”运行。安装 DMG 无需另装 Node.js 或 Python，内置 Mao、桃濑日和两个 Live2D 示例角色；大语言模型与第三方服务由你自行配置。首次安装请阅读安装说明中的安全提示。
+安装包适用于 macOS 13+、Apple Silicon（M 系列），不支持 Intel Mac。安装 DMG 无需另装 Node.js 或 Python，内置 Mao、桃濑日和两个 Live2D 示例角色；大语言模型与第三方服务由你自行配置。测试包尚未完成 Apple Developer ID 签名及公证，首次安装请先阅读安装说明中的安全提示。也可按照下方“从源码启动”运行。
 
 ## 已有能力
 
